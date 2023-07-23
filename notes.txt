@@ -1,0 +1,2 @@
+Express Async - Handler will automatically take care of the try catch block. No Need to write try catch Block
+  

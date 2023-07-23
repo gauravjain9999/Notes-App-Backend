@@ -1,13 +1,13 @@
 const express = require('express');
 const app = express();
 const cors = require('cors');
-const mongoose = require('./src/db/mongoose');
+const mongoose = require('./src/config/dbConnection');
 const bodyParser = require('body-parser');
 const noteRouter = require("./src/routers/notesRouter");
 const userRoute = require("./src/routers/user");
-const port = process.env.port || 7000;
+const dotenv = require("dotenv").config();
 const helmet = require('helmet');
-const url = require('url');
+const port = process.env.PORT || 7000;
 
 app.use(cors());
 app.use(helmet());
@@ -22,7 +22,6 @@ app.use(function (req, res, next) {
     res.setHeader('Access-Control-Allow-Credentials', true);
     next();
 });
-
 
 app.use(bodyParser.urlencoded({extended: false}));
 app.use(bodyParser.json());
@@ -41,6 +40,5 @@ app.use(noteRouter);
 app.use(userRoute);
 
 app.listen(port,  () =>{
-    console.log(`App is Running on Port ${port}`);
-//  const io = require('socket.io');
+console.log(`App is Running on Port ${port}`);
 })

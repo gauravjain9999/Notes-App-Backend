@@ -1,6 +1,8 @@
 const mongoose = require('mongoose');
+const dotenv = require("dotenv").config();
+
 mongoose.set('strictQuery', true);
-mongoose.connect("mongodb://localhost:27017/Notes", {
+mongoose.connect(process.env.CONNECTION_STRING, {
   useNewUrlParser: true,
   useUnifiedTopology: true
 }).then(() =>{
