@@ -3,18 +3,40 @@ const mongoose = require('mongoose');
 
 //Get Notes
 module.exports = {
+  /**
+   * This function is used to get all the notes from the database.
+   * @param {Object} req - The request object.
+   * @param {Object} res - The response object.
+   * @returns {Promise} - A promise that resolves to an object containing the notes list.
+   */
   getNotes: async (req, res) => {
     try {
+      // Find all notes in the database
       const notes = await Note.find();
+      // Return the notes list to the client
       res.status(200).json({
         apiResponseData: {
+          /**
+           * An array of objects containing the notes data.
+           * @type {Array<Object>}
+           */
           notesList: notes,
         },
+        /**
+         * A boolean indicating whether the API request was
+         * successful or not.
+         * @type {Boolean}
+         */
         apiResponseStatus: true,
       });
     } catch (error) {
+      // Return an error response to the client if something went wrong
       return res.status(500).json({
         apiResponseData: {
+          /**
+           * A string containing the error message.
+           * @type {String}
+           */
           apiResponseMessage: 'Something went Wrong.Please try Again later !',
         },
       });

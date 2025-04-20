@@ -7,7 +7,7 @@ const noteRouter = require("./src/routers/notesRouter");
 const userRoute = require("./src/routers/user");
 const dotenv = require("dotenv").config();
 const helmet = require('helmet');
-const port = process.env.PORT || 7000;
+const port = process.env.PORT || 9000;
 
 app.use(cors());
 app.use(helmet());
@@ -16,7 +16,7 @@ app.use(express.json());
 app.use(express.static('/uploads'));
 
 app.use(function (req, res, next) {
-    res.setHeader('Access-Control-Allow-Origin', 'http://localhost:7000');
+    res.setHeader('Access-Control-Allow-Origin', 'http://localhost:9000');
     res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS, PUT, PATCH, DELETE');
     res.setHeader('Access-Control-Allow-Headers', 'X-Requested-With,content-type');
     res.setHeader('Access-Control-Allow-Credentials', true);
