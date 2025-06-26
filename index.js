@@ -8,6 +8,7 @@ const userRoute = require("./src/routers/user");
 const dotenv = require("dotenv").config();
 const helmet = require('helmet');
 const port = process.env.PORT || 9000;
+const logger = require('./src/utils/logger');
 
 app.use(cors());
 app.use(helmet());
@@ -35,10 +36,9 @@ app.use(bodyParser.json());
 //     next();
 //   })
 
-
 app.use(noteRouter);
 app.use(userRoute);
-
 app.listen(port,  () =>{
+logger.info(`Server started on http://localhost:${port}`);
 console.log(`App is Running on Port ${port}`);
 })

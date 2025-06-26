@@ -1,6 +1,7 @@
 const Note = require('../models/note');
 const mongoose = require('mongoose');
-
+const logger = require('../utils/logger');
+const uploadFile = require('../models/upload');
 //Get Notes
 module.exports = {
   /**
@@ -14,6 +15,7 @@ module.exports = {
       // Find all notes in the database
       const notes = await Note.find();
       // Return the notes list to the client
+      logger.info('GET / route accessed');
       res.status(200).json({
         apiResponseData: {
           /**
@@ -30,6 +32,7 @@ module.exports = {
         apiResponseStatus: true,
       });
     } catch (error) {
+      logger.error('Simulated error occurred!');
       // Return an error response to the client if something went wrong
       return res.status(500).json({
         apiResponseData: {
@@ -71,32 +74,90 @@ module.exports = {
   },
 
   //Upload File (Image)
+  // uploadFile: (req, res) => {
+  //   let notesData = new Note({
+  //     _id: new mongoose.Types.ObjectId(),
+  //     image: req.file.path,
+  //   });
+  //   console.log(req.file);  
+  //   notesData
+  //     .save()
+  //     .then((result) => {
+  //       console.log(result);
+  //       res.status(200).json({
+  //         apiResponseData: {
+  //           apiResponseMessage: 'Image is Successfully uploaded.',
+  //         },
+  //         attachmentUrl: result.image,
+  //         apiResponseStatus: true,
+  //       });
+  //     })
+  //     .catch((err) => {
+  //       res.status(500).json({
+  //         apiResponseData: {
+  //           apiResponseMessage: 'Something Went Wrong.Please try again !',
+  //         },
+  //       });
+  //     }
+  //   );
+  // },
+
+  /**
+   * @function uploadFile
+   * @description Handles file upload and saves file metadata to the database.
+   * @param {Object} req - The request object.
+   * @param {Object} res - The response object.
+   */
   uploadFile: (req, res) => {
-    let notesData = new Note({
-      _id: new mongoose.Types.ObjectId(),
-      image: req.file.path,
+    logger.info('POST /uploadFile route accessed');
+    if (!req.file) {
+      logger.warn('No file uploaded in request.');
+      return res.status(400).json({
+      apiResponseData: {
+        apiResponseMessage: 'No file uploaded.',
+      },
+      apiResponseStatus: false,
+      });
+    }
+    // Construct file data object
+    const fileData = new uploadFile({
+      filename: req.file.filename, // Filename of the uploaded file
+      uploadedAt: new Date(), // Timestamp when the file was uploaded
+      url: `${req.protocol}://${req.get('host')}/uploads/${req.file.filename}`, // Full URL to access the file
+      contentType: req.file.mimetype, // File MIME type
     });
-    console.log(req.file);  
-    notesData
+
+    // Save file data to the database
+    fileData
       .save()
       .then((result) => {
-        console.log(result);
-        res.status(200).json({
-          apiResponseData: {
-            apiResponseMessage: 'Image is Successfully uploaded.',
-          },
-          attachmentUrl: result.image,
-          apiResponseStatus: true,
-        });
+      logger.info(`File uploaded and saved: ${result.filename}`);
+      res.status(200).json({
+        apiResponseData: {
+        apiResponseMessage: 'File uploaded successfully.',
+        },
+        // file: result, // Return saved file data
+        apiResponseStatus: true,
+      });
       })
       .catch((err) => {
-        res.status(500).json({
-          apiResponseData: {
-            apiResponseMessage: 'Something Went Wrong.Please try again !',
-          },
-        });
-      }
-    );
+      logger.error('Error saving uploaded file:', err);
+      res.status(500).json({
+        apiResponseData: {
+        apiResponseMessage: 'Something went wrong. Please try again!',
+        },
+        apiResponseStatus: false,
+      });
+      });
+    // Check if a file is uploaded
+    if (!req.file) {
+      return res.status(400).json({
+        apiResponseData: {
+          apiResponseMessage: 'No file uploaded.',
+        },
+        apiResponseStatus: false,
+      });
+    }
   },
 
   //Delete All Notes

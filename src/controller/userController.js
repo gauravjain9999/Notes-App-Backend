@@ -3,7 +3,7 @@ const User = require('../models/user');
 const mongoose = require('mongoose');
 const bcrypt = require('bcrypt');
 const jwt =  require('jsonwebtoken');
-
+const logger = require('../utils/logger');
 //SignUp Registration
 module.exports = {
   /**
@@ -66,6 +66,7 @@ module.exports = {
     .then(user => {
       // If user not found, return error
       if (user.length < 1) {
+        logger.info(`Login attempt fail for email: ${req.body.email}`);
         return res.status(401).json({
           message: "User Not Exist"
         });
@@ -89,7 +90,7 @@ module.exports = {
           {expiresIn: "24h"} // Set token expiration
           );
           // Return response with user data and token
-          res.status(200).json({
+          res.status(200).json({   
             apiResponseData: {
               email: user[0].email,
               phone: user[0].phone,
@@ -98,11 +99,12 @@ module.exports = {
             },
             apiResponseStatus: true
           });
+         logger.info(`Login attempt success for email: ${req.body.email}`)
         }
       });
     })
     .catch(err => {
-      // Handle error
+      logger.error(`Error occurred during login: ${err}`);
       res.status(500).json({
         message: err
       });
