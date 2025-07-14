@@ -14,13 +14,11 @@ const upload = multer({
       fileSize: 10000000 // 1000000 Bytes = 1 MB
     },
     fileFilter(req, file, cb) {
-      if (!file.originalname.match(/\.(png|jpg)$/)) { 
-         // upload only png and jpg format
-         return cb(new Error('Please upload a Image'))
+      if (!file.originalname.match(/\.(png|jpg|jpeg)$/)) { 
+         return cb(new Error('Upload only png jpg and jpeg format'))
        }
      cb(undefined, true)
     }
 });
 
 module.exports = upload;
-  
