@@ -1,6 +1,5 @@
 const express = require('express');
 const router = new express.Router();
-const cloud =require('cloudinary').v2;
 const upload = require('../middleware/file-upload');
 const notesController = require('../controller/notesController');
 const emailController = require('../controller/emailController');

@@ -48,3 +48,25 @@
 2025-06-23 17:06:43 [INFO]: Server started on http://localhost:9000
 2025-06-23 20:27:28 [INFO]: Server started on http://localhost:9000
 2025-06-23 20:30:36 [INFO]: Server started on http://localhost:9000
+2025-07-03 12:54:49 [INFO]: Server started on http://localhost:9000
+2025-07-03 12:56:13 [INFO]: Server started on http://localhost:9000
+2025-07-03 14:13:10 [INFO]: Login attempt success for email: gauravjain0931@gmail.com
+2025-07-03 14:14:10 [INFO]: GET / route accessed
+2025-07-03 15:11:33 [INFO]: Server started on http://localhost:9000
+2025-07-03 15:43:50 [INFO]: Server started on http://localhost:9000
+2025-07-03 15:49:25 [INFO]: Server started on http://localhost:9000
+2025-07-03 15:51:23 [INFO]: POST /upload route accessed
+2025-07-03 15:54:10 [INFO]: Server started on http://localhost:9000
+2025-07-03 15:54:15 [INFO]: POST /upload route accessed
+2025-07-03 15:55:01 [INFO]: Server started on http://localhost:9000
+2025-07-03 15:55:09 [INFO]: POST /upload route accessed
+2025-07-03 15:55:09 [ERROR]: Error saving uploaded file: No value provided for input HTTP label: Bucket.
+2025-07-03 15:59:59 [INFO]: Server started on http://localhost:9000
+2025-07-03 16:00:59 [INFO]: POST /upload route accessed
+2025-07-03 16:00:59 [ERROR]: Error saving uploaded file: No value provided for input HTTP label: Bucket.
+2025-07-03 16:01:52 [INFO]: Server started on http://localhost:9000
+2025-07-03 16:01:56 [INFO]: POST /upload route accessed
+2025-07-03 16:01:58 [INFO]: File uploaded and saved: undefined
+2025-07-03 16:04:40 [INFO]: POST /upload route accessed
+2025-07-03 16:04:41 [INFO]: File uploaded and saved: undefined
+2025-07-03 16:06:28 [INFO]: Server started on http://localhost:9000
