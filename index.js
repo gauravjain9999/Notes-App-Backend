@@ -35,7 +35,6 @@ app.use(bodyParser.json());
 //     console.log("HTTP Method - " + req.method + ", URL", + req.baseUrl + req.path);
 //     next();
 //   })
-
 app.use(noteRouter);
 app.use(userRoute);
 app.listen(port,  () =>{
