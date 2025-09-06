@@ -38,7 +38,7 @@ module.exports = {
         apiResponseStatus: true,
       });
     } catch (error) {
-      logger.error('Simulated error occurred!');
+      logger.error('Error occurred while fetching notes:', error);
       // Return an error response to the client if something went wrong
       return res.status(500).json({
         apiResponseData: {
@@ -76,7 +76,7 @@ module.exports = {
           },
         });
       }
-    );
+      );
   },
 
   /**
@@ -87,96 +87,54 @@ module.exports = {
    */
   uploadFile: async (req, res) => {
 
-  logger.info('POST /upload route accessed');
+    logger.info('POST /upload route accessed');
 
-  if (!req.file) {
-    logger.warn('No file uploaded in request.');
-    return res.status(400).json({
-      apiResponseData: {
-        apiResponseMessage: 'No file uploaded.',
-      },
-      apiResponseStatus: false,
-    });
-  }
+    if (!req.file) {
+      logger.warn('No file uploaded in request.');
+      return res.status(400).json({
+        apiResponseData: {
+          apiResponseMessage: 'No file uploaded.',
+        },
+        apiResponseStatus: false,
+      });
+    }
 
-  const file = req.file;
-  const fileName = crypto.randomBytes(16).toString('hex') + path.extname(file.originalname);
+    const file = req.file;
+    const fileName = crypto.randomBytes(16).toString('hex') + path.extname(file.originalname);
 
-  const uploadParams = {
-    Bucket: process.env.S3_BUCKET_NAME,
-    Key: fileName,
-    Body: file.buffer,
-    ContentType: file.mimetype,
-  };
+    const uploadParams = {
+      Bucket: process.env.S3_BUCKET_NAME,
+      Key: fileName,
+      Body: file.buffer,
+      ContentType: file.mimetype,
+    };
 
-  try {
-    await s3.send(new PutObjectCommand(uploadParams));
-    const s3Url = `https://${process.env.S3_BUCKET_NAME}.s3.${process.env.AWS_REGION}.amazonaws.com/${fileName}`;
-    const fileData = new uploadFile({
-      fileName: file.originalname,
-      s3Url: s3Url,
-      uploadedAt: new Date(),
-      contentType: file.mimetype,
-    });
-    await fileData.save();
-    logger.info(`File uploaded and saved: ${fileData.fileName}`);
-    res.status(200).json({
-      apiResponseData: {
-        apiResponseMessage: 'File uploaded successfully.',
-      },
-      apiResponseStatus: true,
-    });
-  } catch (err) {
-    logger.error('Error saving uploaded file:', err);
-    res.status(500).json({
-      apiResponseData: {
-        apiResponseMessage: 'Something went wrong. Please try again!',
-      },
-      apiResponseStatus: false,
-    });
-  }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+    try {
+      await s3.send(new PutObjectCommand(uploadParams));
+      const s3Url = `https://${process.env.S3_BUCKET_NAME}.s3.${process.env.AWS_REGION}.amazonaws.com/${fileName}`;
+      const fileData = new uploadFile({
+        fileName: file.originalname,
+        s3Url: s3Url,
+        uploadedAt: new Date(),
+        contentType: file.mimetype,
+      });
+      await fileData.save();
+      logger.info(`File uploaded and saved: ${fileData.fileName}`);
+      res.status(200).json({
+        apiResponseData: {
+          apiResponseMessage: 'File uploaded successfully.',
+        },
+        apiResponseStatus: true,
+      });
+    } catch (err) {
+      logger.error('Error saving uploaded file:', err);
+      res.status(500).json({
+        apiResponseData: {
+          apiResponseMessage: 'Something went wrong. Please try again!',
+        },
+        apiResponseStatus: false,
+      });
+    }
 
     // logger.info('POST /uploadFile route accessed');
     // if (!req.file) {
@@ -230,7 +188,7 @@ module.exports = {
   },
 
   //Delete All Notes
-  deleteAllNotes: async(req, res) =>{
+  deleteAllNotes: async (req, res) => {
     try {
       await Note.deleteMany({});
       res.status(200).json({
@@ -239,22 +197,22 @@ module.exports = {
         },
         apiResponseStatus: true,
       });
-    } 
+    }
     catch (error) {
+      logger.error('Error deleting notes:', error);
       res.status(500).json({
         apiResponseData: {
           apiResponseMessage: 'Something Went Wrong.Please try again !',
         },
-      }
-    );
-  }
- },
+      });
+    }
+  },
 
   //Delete Notes
-  deleteNotes: async(req, res) => {
-    var objectId = req.params.id;
+  deleteNotes: async (req, res) => {
+    const objectId = req.params.id;
     try {
-      const result = await Note.deleteOne({
+      await Note.deleteOne({
         _id: new mongoose.mongo.ObjectId(objectId),
       });
       res.status(200).json({
@@ -263,8 +221,9 @@ module.exports = {
         },
         apiResponseStatus: true,
       });
-    } 
+    }
     catch (error) {
+      logger.error('Error updating note:', error);
       res.status(500).json({
         apiResponseData: {
           apiResponseMessage: 'Something Went Wrong.Please try again !',
@@ -274,30 +233,31 @@ module.exports = {
   },
 
   //Edit Notes
-  editNotes: async(req, res) => {
+  editNotes: async (req, res) => {
     let objectId = req.params.id;
-    try{ 
-        await Note.findOneAndUpdate({
+    try {
+      await Note.findOneAndUpdate({
         _id: objectId,
-      },  
-      {
-        $set: {
-          title: req.body.title,
-          description: req.body.description
-        }
-    })
-    .then(result =>{
-      res.status(200).json({
-        apiResponseData:{
-          apiResponseMessage: 'Update Notes Successfully.'
-        },
-        apiResponseStatus: true
-      });
-    })
-   }
-    catch(error){
+      },
+        {
+          $set: {
+            title: req.body.title,
+            description: req.body.description
+          }
+        })
+        .then(result => {
+          res.status(200).json({
+            apiResponseData: {
+              apiResponseMessage: 'Update Notes Successfully.'
+            },
+            apiResponseStatus: true
+          });
+        })
+    }
+    catch (error) {
+      logger.error('Error editing note:', error);
       res.status(500).json({
-        apiResponseData:{
+        apiResponseData: {
           apiResponseMessage: 'Something Went Wrong.Please try again !'
         }
       });

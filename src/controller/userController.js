@@ -2,8 +2,10 @@ const express = require('express');
 const User = require('../models/user');
 const mongoose = require('mongoose');
 const bcrypt = require('bcrypt');
-const jwt =  require('jsonwebtoken');
+const jwt = require('jsonwebtoken');
 const logger = require('../utils/logger');
+const { sendOtp, verifyOtp } = require("../utils/otp-service");
+
 //SignUp Registration
 module.exports = {
   /**
@@ -46,12 +48,11 @@ module.exports = {
             apiResponseStatus: true
           });
         }).catch((err) => {
-          res.status(500).json({error: err});
+          res.status(500).json({ error: err });
         });
       }
     });
   },
-
   /**
    * @function loginUser
    * @description This function is used to log in the user.
@@ -59,55 +60,124 @@ module.exports = {
    * @param {Object} res - The response object.
    * @returns {Promise} - A promise that resolves to an object containing the user data and authorization token.
    */
-  loginUser : async(req, res) => {
+  loginUser: async (req, res) => {
     // Find the user by email
-    User.find({email: req.body.email})
-    .exec()
-    .then(user => {
-      // If user not found, return error
-      if (user.length < 1) {
-        logger.info(`Login attempt fail for email: ${req.body.email}`);
-        return res.status(401).json({
-          message: "User Not Exist"
+    User.find({ email: req.body.email })
+      .exec()
+      .then(user => {
+        // If user not found, return error
+        if (user.length < 1) {
+          logger.info(`Login attempt fail for email: ${req.body.email}`);
+          return res.status(401).json({
+            message: "User Not Exist"
+          });
+        }
+        // Compare the password using bcrypt
+        bcrypt.compare(req.body.password, user[0].password, (err, result) => {
+          if (!result) {
+            return res.status(401).json({
+              message: 'Password Not Correct'
+            });
+          }
+          if (result) {
+            // Create JWT token
+            const authorizationToken = jwt.sign({
+              username: user[0].username,
+              userType: user[0].userType,
+              email: user[0].email,
+              phone: user[0].phone
+            },
+              'SECRET_KEY',
+              { expiresIn: "24h" } // Set token expiration
+            );
+            // Return response with user data and token
+            res.status(200).json({
+              apiResponseData: {
+                email: user[0].email,
+                phone: user[0].phone,
+                userName: user[0].username,
+                authorizationToken: `Bearer ${authorizationToken}`,
+              },
+              apiResponseStatus: true
+            });
+            logger.info(`Login attempt success for email: ${req.body.email}`)
+          }
+        });
+      })
+      .catch(err => {
+        logger.error(`Error occurred during login: ${err}`);
+        res.status(500).json({
+          message: err
         });
       }
-      // Compare the password using bcrypt
-      bcrypt.compare(req.body.password, user[0].password, (err, result) => {
-        if (!result) {
-          return res.status(401).json({
-            message: 'Password Not Correct'
-          });
-        }
-        if (result) {
-          // Create JWT token
-          const authorizationToken = jwt.sign({
-            username: user[0].username,
-            userType: user[0].userType,
-            email: user[0].email,
-            phone: user[0].phone
-          },
-          'SECRET_KEY',
-          {expiresIn: "24h"} // Set token expiration
-          );
-          // Return response with user data and token
-          res.status(200).json({   
-            apiResponseData: {
-              email: user[0].email,
-              phone: user[0].phone,
-              userName: user[0].username,
-              authorizationToken: `Bearer ${authorizationToken}`,
-            },
-            apiResponseStatus: true
-          });
-         logger.info(`Login attempt success for email: ${req.body.email}`)
-        }
+      );
+  },
+
+  requestOTP: async (req, res) => {
+    try {
+      const { email } = req.body;
+      if (!email) return res.status(400).json({ success: false, message: "Email is required" });
+
+      await sendOtp(email);
+      res.json({
+        apiResponseData: {
+          apiResponseMessage: "OTP sent successfully"
+        },
+        apiResponseStatus: true
       });
-    })
-    .catch(err => {
-      logger.error(`Error occurred during login: ${err}`);
+    } catch (error) {
+      logger.error(`Send OTP Error: ${error}`);
       res.status(500).json({
-        message: err
+        apiResponseData: {
+          apiResponseMessage: "Failed to send OTP"
+        },
+        apiResponseStatus: false
       });
-    });
+    }
+  },
+
+  verifyOTP: async (req, res) => {
+    try {
+      const { email, otp } = req.body;
+      if (!email || !otp) {
+        return res.status(400).json({
+          apiResponseData: {
+            apiResponseMessage: "Email and OTP are required",
+          },
+          apiResponseStatus: false
+        });
+      }
+
+      const result = await verifyOtp(email, otp);
+      if (!result.success) return res.status(400).json({
+        apiResponseData: {
+          apiResponseMessage: result,
+        },
+        apiResponseStatus: false
+      }
+      );
+      // Generate token (JWT or session based)
+      // For example, JWT:
+      const jwt = require("jsonwebtoken");
+      const token = jwt.sign({ email }, "SECRET_KEY", { expiresIn: "1h" });
+
+      res.json({
+        apiResponseData: {
+          apiResponseMessage: "Login Successful",
+          authorizationToken: `Bearer ${token}`,
+          email: email,
+          userName: email.split('@')[0] // Example username from email
+        },
+        apiResponseStatus: true
+      });
+    } catch (error) {
+      logger.error(`Error occurred during OTP verification: ${error}`);
+      res.status(500).json({
+        apiResponseData: {
+          apiResponseMessage: "Failed to verify OTP"
+        },
+        apiResponseStatus: false
+      });
+    }
   }
 };
