@@ -35,6 +35,7 @@ module.exports = {
      */
     sendEmail: async (req, res) => {
       const { email } = req.body;
+      console.log(req.body);
       if (!email) return res.status(400).json({
             apiResponseData: {
                 apiResponseMessage: 'Email is required'
@@ -67,7 +68,7 @@ module.exports = {
         await transporter.sendMail({
           from: process.env.EMAIL_USER,
           to: email,
-          subject: '🎉 Welcome to SmartNotes!',
+          subject: 'Welcome to SmartNotes!',
           text: `You've successfully subscribed to updates.`,
           html: emailHtml
         });

@@ -54,6 +54,7 @@ module.exports = {
 
   //Add Notes
   addNotes: (req, res) => {
+    logger.info('POST / route accessed');
     let notesData = new Note({
       _id: new mongoose.Types.ObjectId(),
       title: req.body.title,
@@ -189,11 +190,12 @@ module.exports = {
 
   //Delete All Notes
   deleteAllNotes: async (req, res) => {
+    logger.info('PATCH / route accessed');
     try {
       await Note.deleteMany({});
       res.status(200).json({
         apiResponseData: {
-          apiResponseMessage: 'All Notes Deleted.',
+          apiResponseMessage: 'All Notes Deleted Successfully.',
         },
         apiResponseStatus: true,
       });
@@ -215,52 +217,190 @@ module.exports = {
       await Note.deleteOne({
         _id: new mongoose.mongo.ObjectId(objectId),
       });
-      res.status(200).json({
+    res.status(200).json({
+      apiResponseData: {
+        apiResponseMessage: 'Note deleted successfully'
+      },
+      apiResponseStatus: true
+    });
+  } catch (error) {
+    console.error('Delete Note Error:', error);
+    res.status(500).json({
+      apiResponseData: { apiResponseMessage: 'Something went wrong' },
+      apiResponseStatus: false
+    });
+  }
+},
+
+  deleteInTrashedNotes: async (req, res) => {
+  const { id } = req.params;
+
+  try {
+    const deletedNote = await Note.findByIdAndUpdate(
+      id,
+      {
+        $set: {
+          isDeleted: true,
+          deletedAt: new Date()
+        }
+      },
+      { new: true } // Return updated document
+    );
+
+    if (!deletedNote) {
+      return res.status(404).json({
         apiResponseData: {
-          apiResponseMessage: 'Notes Deleted.',
+          apiResponseMessage: 'Note not found'
         },
-        apiResponseStatus: true,
+        apiResponseStatus: false
       });
     }
-    catch (error) {
-      logger.error('Error updating note:', error);
-      res.status(500).json({
-        apiResponseData: {
-          apiResponseMessage: 'Something Went Wrong.Please try again !',
-        },
-      });
-    }
-  },
+
+    res.status(200).json({
+      apiResponseData: {
+        data: deletedNote,
+        apiResponseMessage: 'Note moved to trash successfully'
+      },
+      apiResponseStatus: true
+    });
+
+  } catch (error) {
+    console.error('Delete Note Error:', error);
+    res.status(500).json({
+      apiResponseData: {
+        apiResponseMessage: 'Something went wrong'
+      },
+      apiResponseStatus: false
+    });
+  }
+},
 
   //Edit Notes
+  // editNotes: async (req, res) => {
+  //   let objectId = req.params.id;
+  //   try {
+  //     await Note.findOneAndUpdate({
+  //       _id: objectId,
+  //     },
+  //       {
+  //         $set: {
+  //           title: req.body.title,
+  //           description: req.body.description
+  //         }
+  //       })
+  //       .then(result => {
+  //         res.status(200).json({
+  //           apiResponseData: {
+  //             apiResponseMessage: 'Update Notes Successfully.'
+  //           },
+  //           apiResponseStatus: true
+  //         });
+  //       })
+  //   }
+  //   catch (error) {
+  //     logger.error('Error editing note:', error);
+  //     res.status(500).json({
+  //       apiResponseData: {
+  //         apiResponseMessage: 'Something Went Wrong.Please try again !'
+  //       }
+  //     });
+  //   }
+  // },
+
+  /**
+   * Edit a note
+   * @param {Object} req - The request object
+   * @param {Object} res - The response object
+   * @returns {Promise} - A promise that resolves to an object containing the updated note data
+   */
   editNotes: async (req, res) => {
-    let objectId = req.params.id;
+    logger.info('POST / route accessed');
     try {
-      await Note.findOneAndUpdate({
-        _id: objectId,
-      },
+      logger.info('editNotes called with:', req.params.id, req.body);
+      const objectId = req.params.id;
+      console.log(mongoose.Types.ObjectId.isValid(objectId))
+      // Validate ObjectId before querying
+      if (!mongoose.Types.ObjectId.isValid(objectId)) {
+        logger.error('Invalid note ID format');
+        return res.status(400).json({
+          apiResponseData: {
+            apiResponseMessage: 'Invalid note ID format'
+          },
+          apiResponseStatus: false
+        });
+      }
+
+      // Find the note by its ID and update it
+      const updatedNote = await Note.findOneAndUpdate(
+        { _id: objectId },
         {
           $set: {
             title: req.body.title,
             description: req.body.description
           }
-        })
-        .then(result => {
-          res.status(200).json({
-            apiResponseData: {
-              apiResponseMessage: 'Update Notes Successfully.'
-            },
-            apiResponseStatus: true
-          });
-        })
-    }
-    catch (error) {
+        },
+        { new: true }
+      );
+
+      if (!updatedNote) {
+        logger.warn('Note not found');
+        return res.status(404).json({
+          apiResponseData: {
+            apiResponseMessage: 'Note not found'
+          },
+          apiResponseStatus: false
+        });
+      }
+      logger.info('Note updated successfully:', updatedNote);
+      res.status(200).json({
+        apiResponseData: {
+          apiResponseMessage: 'Note updated successfully',
+        },
+        apiResponseStatus: true
+      });
+    } catch (error) {
       logger.error('Error editing note:', error);
       res.status(500).json({
         apiResponseData: {
-          apiResponseMessage: 'Something Went Wrong.Please try again !'
-        }
+          apiResponseMessage: 'Something went wrong. Please try again!'
+        },
+        apiResponseStatus: false
       });
     }
+  },
+
+  restoreNote: async (req, res) => {
+  try {
+    const { id } = req.params;
+    const note = await Note.findOne({ _id: id });
+
+    console.log(note)
+    if (!note) {
+      return res.status(404).json({
+        apiResponseData: { apiResponseMessage: 'Note not found or already active' },
+        apiResponseStatus: false
+      });
+    }
+
+    note.isDeleted = false;
+    note.deletedAt = null;
+
+    const restoredNote = await note.save();
+
+    res.status(200).json({
+      apiResponseData: {
+        notesList: restoredNote,
+        apiResponseMessage: 'Note restored successfully'
+      },
+      apiResponseStatus: true
+    });
+  } 
+  catch (error) {
+    logger.error('Restore Note Error:', error);
+    res.status(500).json({
+      apiResponseData: { apiResponseMessage: 'Something went wrong' },
+      apiResponseStatus: false
+    });
+  }
   }
 };

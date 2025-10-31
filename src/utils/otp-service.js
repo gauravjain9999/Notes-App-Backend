@@ -23,6 +23,15 @@ async function sendOtp(email) {
     },
   });
 
+  transporter.verify((error, success) => {
+    if (error) {
+      console.error('❌ SMTP connection failed:', error.message);
+    } else {
+      console.log('✅ SMTP connection successful, ready to send emails.');
+    }
+  });
+
+
   await transporter.sendMail({
     from: '"SmartNotes" gauravjain0931@gmail.com',
     to: email,

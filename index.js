@@ -9,6 +9,7 @@ const dotenv = require("dotenv").config();
 const helmet = require('helmet');
 const port = process.env.PORT || 9000;
 const logger = require('./src/utils/logger');
+const verifyToken = require('./src/middleware/auth');
 
 app.use(cors());
 app.use(helmet());
@@ -24,7 +25,7 @@ app.use(function (req, res, next) {
     next();
 });
 
-app.use(bodyParser.urlencoded({extended: false}));
+app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
 
 
@@ -35,9 +36,9 @@ app.use(bodyParser.json());
 //     console.log("HTTP Method - " + req.method + ", URL", + req.baseUrl + req.path);
 //     next();
 //   })
-app.use(noteRouter);
 app.use(userRoute);
-app.listen(port,  () =>{
-logger.info(`Server started on http://localhost:${port}`);
-console.log(`App is Running on Port ${port}`);
+app.use(verifyToken, noteRouter);
+app.listen(port, () => {
+    logger.info(`Server started on http://localhost:${port}`);
+    console.log(`App is Running on Port ${port}`);
 })

@@ -69,14 +69,20 @@ module.exports = {
         if (user.length < 1) {
           logger.info(`Login attempt fail for email: ${req.body.email}`);
           return res.status(401).json({
-            message: "User Not Exist"
+            apiResponseData: {
+              apiResponseMessage: "User Not Exist"
+            },
+            apiResponseStatus: false
           });
         }
         // Compare the password using bcrypt
         bcrypt.compare(req.body.password, user[0].password, (err, result) => {
           if (!result) {
             return res.status(401).json({
-              message: 'Password Not Correct'
+              apiResponseData: {
+                apiResponseMessage: 'Password Not Correct'
+              },
+              apiResponseStatus: false
             });
           }
           if (result) {
