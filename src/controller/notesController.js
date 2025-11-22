@@ -313,61 +313,66 @@ module.exports = {
    * @param {Object} res - The response object
    * @returns {Promise} - A promise that resolves to an object containing the updated note data
    */
-  editNotes: async (req, res) => {
-    logger.info('POST / route accessed');
-    try {
-      logger.info('editNotes called with:', req.params.id, req.body);
-      const objectId = req.params.id;
-      console.log(mongoose.Types.ObjectId.isValid(objectId))
-      // Validate ObjectId before querying
-      if (!mongoose.Types.ObjectId.isValid(objectId)) {
-        logger.error('Invalid note ID format');
-        return res.status(400).json({
-          apiResponseData: {
-            apiResponseMessage: 'Invalid note ID format'
-          },
-          apiResponseStatus: false
-        });
-      }
+ editNotes: async (req, res) => {
+  logger.info('POST /editNotes route accessed');
 
-      // Find the note by its ID and update it
-      const updatedNote = await Note.findOneAndUpdate(
-        { _id: objectId },
-        {
-          $set: {
-            title: req.body.title,
-            description: req.body.description
-          }
-        },
-        { new: true }
-      );
+  try {
+    const objectId = req.params.id;
 
-      if (!updatedNote) {
-        logger.warn('Note not found');
-        return res.status(404).json({
-          apiResponseData: {
-            apiResponseMessage: 'Note not found'
-          },
-          apiResponseStatus: false
-        });
-      }
-      logger.info('Note updated successfully:', updatedNote);
-      res.status(200).json({
+    // Validate ObjectId
+    if (!mongoose.Types.ObjectId.isValid(objectId)) {
+      return res.status(400).json({
         apiResponseData: {
-          apiResponseMessage: 'Note updated successfully',
-        },
-        apiResponseStatus: true
-      });
-    } catch (error) {
-      logger.error('Error editing note:', error);
-      res.status(500).json({
-        apiResponseData: {
-          apiResponseMessage: 'Something went wrong. Please try again!'
+          apiResponseMessage: 'Invalid note ID format'
         },
         apiResponseStatus: false
       });
     }
-  },
+
+    // Prepare update object dynamically
+    const updateData = {};
+
+    if (req.body.title !== undefined) updateData.title = req.body.title;
+    if (req.body.description !== undefined) updateData.description = req.body.description;
+    if (req.body.isFavourite !== undefined) updateData.isFavourite = req.body.isFavourite;
+    // if (req.body.reminder !== undefined) updateData.reminder = req.body.reminder;
+    if (req.body.tag !== undefined) updateData.tag = req.body.tag;
+
+    // Update Note
+    const updatedNote = await Note.findOneAndUpdate(
+      { _id: objectId },
+      { $set: updateData },
+      { new: true }
+    );
+
+    if (!updatedNote) {
+      return res.status(404).json({
+        apiResponseData: {
+          apiResponseMessage: 'Note not found'
+        },
+        apiResponseStatus: false
+      });
+    }
+
+    res.status(200).json({
+      apiResponseData: {
+        apiResponseMessage: 'Note updated successfully',
+        updatedNote
+      },
+      apiResponseStatus: true
+    });
+
+  } catch (error) {
+    logger.error('Error editing note:', error);
+    res.status(500).json({
+      apiResponseData: {
+        apiResponseMessage: 'Something went wrong. Please try again!'
+      },
+      apiResponseStatus: false
+    });
+  }
+},
+
 
   restoreNote: async (req, res) => {
   try {
