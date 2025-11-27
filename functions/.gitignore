@@ -1,0 +1,7 @@
+node_modules/
+*.local
+.env
+/logs
+/src/logs
+.env.authenticator-app-d6c4d
+.early.coverage
