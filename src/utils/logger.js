@@ -15,11 +15,10 @@ const logger = createLogger({
     //   level: 'error',
     // }),
     new transports.File({
-      filename: path.join(__dirname, '../logs/combined.log'),
+      filename: path.join(__dirname, '../logs/keepNotes.log'),
     }),
   ],
 });
-
 // if (process.env.NODE_ENV !== 'production') {
 //   logger.add(new transports.Console({
 //     format: format.combine(format.colorize(), format.simple())

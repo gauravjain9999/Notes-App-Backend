@@ -3,3 +3,4 @@ node_modules
 /logs
 /src/logs
 .early.coverage
+/serviceAccountKey.json
