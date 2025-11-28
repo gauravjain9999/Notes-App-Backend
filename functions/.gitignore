@@ -5,3 +5,5 @@ node_modules/
 /src/logs
 .env.authenticator-app-d6c4d
 .early.coverage
+/serviceAccountKey.json
+../firebase-debug.log
