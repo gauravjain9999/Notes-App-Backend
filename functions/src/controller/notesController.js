@@ -3,17 +3,9 @@ const mongoose = require('mongoose');
 const logger = require('../utils/logger');
 const crypto = require('crypto');
 const path = require('path');
-
 require('dotenv').config();
 
-//Get Notes
 module.exports = {
-  /**
-   * This function is used to get all the notes from the database.
-   * @param {Object} req - The request object.
-   * @param {Object} res - The response object.
-   * @returns {Promise} - A promise that resolves to an object containing the notes list.
-   */
   getNotes: async (req, res) => {
     try {
       // Find all notes in the database
