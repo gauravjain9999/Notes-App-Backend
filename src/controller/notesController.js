@@ -3,7 +3,6 @@ const mongoose = require('mongoose');
 const logger = require('../utils/logger');
 const crypto = require('crypto');
 const path = require('path');
-
 require('dotenv').config();
 
 //Get Notes
