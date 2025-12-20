@@ -1,5 +1,5 @@
 const logger = require('../utils/logger');
-const Email = require('../models/email');
+const Email = require('../models/email.model');
 const nodemailer = require('nodemailer');
 
 const transporter = nodemailer.createTransport({

@@ -5,10 +5,12 @@ const bodyParser = require("body-parser");
 
 const connectDB = require("./src/config/dbConnection");
 
-const userRoute = require("./src/routers/userRouter");
-const noteRoute = require("./src/routers/notesRouter");
-const verifyToken = require("./src/middleware/auth");
+const noteRoute = require("./src/routers/notes.router");
+const userRoute = require("./src/routers/user.router");
+const notebookRouter = require("./src/routers/notebook.router");
+const fileRouter = require("./src/routers/file.router");
 
+const verifyToken = require("./src/middleware/auth");
 const app = express();
 
 // Connect to MongoDB (before routes)
@@ -28,5 +30,7 @@ app.use(bodyParser.json());
 
 app.use(userRoute);
 app.use(verifyToken, noteRoute);
+app.use(verifyToken, notebookRouter);
+app.use(verifyToken, fileRouter)
 
 module.exports = app;

@@ -1,4 +1,4 @@
-const Note = require("../models/note");
+const Note = require("../models/note.model");
 const mongoose = require("mongoose");
 
 module.exports = {
