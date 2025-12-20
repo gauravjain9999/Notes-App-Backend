@@ -2,7 +2,6 @@ const jwt = require("jsonwebtoken");
 const admin = require("../config/firebaseAdmin");
 const logger = require("../utils/logger");
 
-// Detect Google token (Firebase ID Token)
 const isGoogleToken = (token) => {
   // Google ID token always has 3 parts and is long (1200+ characters)
   return token && token.length > 500;
@@ -46,7 +45,7 @@ const verifyToken = async (req, res, next) => {
           picture: decoded.picture,
           provider: "google",
         };
-        
+
         return next();
       } catch (err) {
         logger.error("Google Token Verification Failed:", err);
@@ -62,7 +61,7 @@ const verifyToken = async (req, res, next) => {
     // --------------------------
     try {
       logger.info("Normal JWT detected → verifying...");
-      const decoded = jwt.verify(token, process.env.SECRET_KEY || 'SECRET_KEY');
+      const decoded = jwt.verify(token, process.env.JWT_SECRET || 'JWT_SECRET');
       req.userData = decoded;
       return next();
     } catch (err) {
