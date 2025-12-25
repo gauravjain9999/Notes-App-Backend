@@ -1,1 +1,7 @@
 node_modules
+.env
+/logs
+/src/logs
+.early.coverage
+/serviceAccountKey.json
+/firebase-debug.log
