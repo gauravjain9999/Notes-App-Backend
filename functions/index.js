@@ -18,7 +18,6 @@
 //   expressApp
 // });
 
-
 const functions = require("firebase-functions/v2");
 const { defineString } = require("firebase-functions/params");
 const mongoUri = defineString("DB_URI");
