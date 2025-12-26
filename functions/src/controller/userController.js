@@ -93,7 +93,7 @@ module.exports = {
               email: user[0].email,
               phone: user[0].phone
             },
-              'SECRET_KEY',
+              process.env.JWT_SECRET,
               { expiresIn: "24h" } // Set token expiration
             );
             // Return response with user data and token
@@ -165,7 +165,7 @@ module.exports = {
       // Generate token (JWT or session based)
       // For example, JWT:
       const jwt = require("jsonwebtoken");
-      const token = jwt.sign({ email }, "SECRET_KEY", { expiresIn: "1h" });
+      const token = jwt.sign({ email }, process.env.JWT_SECRET, { expiresIn: "1h" });
 
       res.json({
         apiResponseData: {

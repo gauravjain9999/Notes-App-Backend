@@ -3,7 +3,6 @@ const mongoose = require('mongoose');
 const logger = require('../utils/logger');
 const crypto = require('crypto');
 const path = require('path');
-
 require('dotenv').config();
 
 //Get Notes
@@ -371,7 +370,6 @@ module.exports = {
     }
   },
 
-
   restoreNote: async (req, res) => {
     try {
       const { id } = req.params;
@@ -402,6 +400,39 @@ module.exports = {
       logger.error('Restore Note Error:', error);
       res.status(500).json({
         apiResponseData: { apiResponseMessage: 'Something went wrong' },
+        apiResponseStatus: false
+      });
+    }
+  },
+
+  shortcutNotes: async (req, res) => {
+    try {
+      const favouriteNotes = await Note.find({
+        isFavourite: true,
+        isDeleted: false
+      }).sort({ updatedAt: -1 });
+      
+      if(!favouriteNotes || favouriteNotes.length === 0){
+        return res.status(404).json({
+            apiResponseData: {
+            apiResponseMessage: 'No Notes found in Shortcuts'
+          },
+          apiResponseStatus: false
+        })
+      }
+
+      return res.status(200).json({
+        apiResponseData: {
+          count: favouriteNotes.length,
+          data: favouriteNotes
+        },
+        apiResponseStatus: true
+      });
+    } catch (error) {
+      return res.status(500).json({
+        apiResponseData: {
+          apiResponseMessage: 'Something went wrong. Please try again!'
+        },
         apiResponseStatus: false
       });
     }

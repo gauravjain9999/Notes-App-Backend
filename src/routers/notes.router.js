@@ -15,5 +15,6 @@ router.post('/send-email', emailController.sendEmail);
 router.post('/notes/api/chat', openAIBotController.openAIBot);
 router.patch('/notes-set-reminder/:id/reminder', remindersController.setReminder);
 router.patch('/notes-restore/:id', notesController.restoreNote);
+router.get('/notes-shortcuts', notesController.shortcutNotes);
 
 module.exports = router;

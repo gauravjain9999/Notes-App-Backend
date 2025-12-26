@@ -56,13 +56,12 @@ const verifyToken = async (req, res, next) => {
         });
       }
     }
-
     // --------------------------
     // 2️⃣ NORMAL JWT FROM BACKEND
     // --------------------------
     try {
-      logger.info("Normal JWT detected → verifying...");
-      const decoded = jwt.verify(token, process.env.SECRET_KEY || 'SECRET_KEY');
+      logger.info("Normal JWT detected → verifying...", token);
+      const decoded = jwt.verify(token, process.env.JWT_SECRET || 'JWT_SECRET');
       req.userData = decoded;
       return next();
     } catch (err) {
