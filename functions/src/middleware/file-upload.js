@@ -6,6 +6,7 @@ const upload = multer({
   limits: {
     fileSize: 10 * 1024 * 1024
   },
+
   fileFilter(req, file, cb) {
     const cleanName = file.originalname.replace(/[^\w\d.-]/g, "_");
     file.cleanedName = cleanName;
