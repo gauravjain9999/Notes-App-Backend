@@ -22,7 +22,7 @@ module.exports = {
      * @param {Number} saltRounds - The number of salt rounds to use.
      * @param {Function} callback - The callback function to be called after hashing is done.
      */
-    const result = bcrypt.hash(req.body.password, 10, (err, hash) => {
+    bcrypt.hash(req.body.password, 10, (err, hash) => {
       if (err) {
         return res.status(500).send(err);
       } else {
@@ -93,7 +93,7 @@ module.exports = {
               email: user[0].email,
               phone: user[0].phone
             },
-              'SECRET_KEY',
+              process.env.JWT_SECRET,
               { expiresIn: "24h" } // Set token expiration
             );
             // Return response with user data and token
@@ -165,7 +165,7 @@ module.exports = {
       // Generate token (JWT or session based)
       // For example, JWT:
       const jwt = require("jsonwebtoken");
-      const token = jwt.sign({ email }, "SECRET_KEY", { expiresIn: "1h" });
+      const token = jwt.sign({ email }, process.env.JWT_SECRET, { expiresIn: "1h" });
 
       res.json({
         apiResponseData: {

@@ -1,6 +1,7 @@
 const crypto = require("crypto");
 const Otp = require("../models/otp.model");
 const nodemailer = require("nodemailer");
+require("dotenv").config();
 
 // Generate random 6-digit OTP
 function generateOtp() {
