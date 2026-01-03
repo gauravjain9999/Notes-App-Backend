@@ -2,5 +2,6 @@
     "cSpell.words": [
         "fieldname"
     ],
-    "postman.settings.dotenv-detection-notification-visibility": false
+    "postman.settings.dotenv-detection-notification-visibility": false,
+    "CodeGPT.apiKey": "OpenAI"
 }

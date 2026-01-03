@@ -408,16 +408,14 @@ module.exports = {
   shortcutNotes: async (req, res) => {
     try {
       const favouriteNotes = await Note.find({
-        isFavourite: true,
-        isDeleted: false
+        isFavourite: true
       }).sort({ updatedAt: -1 });
-      
-      if(!favouriteNotes || favouriteNotes.length === 0){
-        return res.status(404).json({
-            apiResponseData: {
+      if (!favouriteNotes || favouriteNotes.length === 0) {
+        return res.status(200).json({
+          apiResponseData: {
             apiResponseMessage: 'No Notes found in Shortcuts'
           },
-          apiResponseStatus: false
+          apiResponseStatus: true
         })
       }
 
@@ -429,12 +427,74 @@ module.exports = {
         apiResponseStatus: true
       });
     } catch (error) {
+      logger.error('Shortcut Notes Error:', error);
       return res.status(500).json({
         apiResponseData: {
-          apiResponseMessage: 'Something went wrong. Please try again!'
+          apiResponseMessage: 'Something went wrong.'
         },
         apiResponseStatus: false
       });
     }
+  },
+
+  removedShortcutNotes: async (req, res) => {
+    const requestId = req.id || 'N/A';
+
+    logger.info(`[${requestId}] Remove shortcut API called`);
+
+    try {
+      // correct param name
+      const noteId = req.params.id;
+      logger.debug(`[${requestId}] Incoming noteId: ${noteId}`);
+
+      // validate ObjectId
+      if (!mongoose.Types.ObjectId.isValid(noteId)) {
+        logger.warn(`[${requestId}] Invalid noteId format: ${noteId}`);
+
+        return res.status(400).json({
+          apiResponseStatus: false,
+          apiResponseData: {
+            apiResponseMessage: "Invalid note id"
+          }
+        });
+      }
+
+      const note = await Note.findOneAndUpdate(
+        { _id: noteId },
+        { $set: { isFavourite: false } },
+        { new: true }
+      );
+
+      if (!note) {
+        logger.warn(
+          `[${requestId}] Note not found in DB: ${noteId}`
+        );
+
+        return res.status(404).json({
+          apiResponseStatus: false,
+          apiResponseData: {
+            apiResponseMessage: "Notes not found."
+          }
+        });
+      }
+
+      logger.info(
+        `[${requestId}] Shortcut removed successfully for noteId: ${noteId}`
+      );
+
+      return res.status(200).json({
+        apiResponseStatus: true,
+        apiResponseData: {
+          apiResponseMessage: "Shortcut removed successfully",
+          data: note
+        }
+      });
+
+    } catch (error) {
+      logger.error(`[${requestId}] Remove shortcut notes error`, {
+        message: error.message,
+        stack: error.stack
+      });
+    };
   }
 };
