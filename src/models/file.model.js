@@ -1,16 +1,3 @@
-// const mongoose = require("mongoose");
-// const uploadFileSchema = new mongoose.Schema({
-//   filename: String,
-//   url: String, // like "https://yourbucket.s3.amazonaws.com/abc.pdf"
-//   contentType: String,
-//   uploadedAt: {
-//     type: Date,
-//     default: Date.now
-//   }
-// });
-
-// module.exports = mongoose.model('UploadFile', uploadFileSchema);
-
 const mongoose = require("mongoose");
 
 const FileSchema = new mongoose.Schema({
@@ -18,6 +5,7 @@ const FileSchema = new mongoose.Schema({
   downloadURL: String,
   mimeType: String,
   size: Number,
+  presignedURL: String,
   uploadedAt: { type: Date, default: Date.now },
   createdBy: String // email or userId
 });
