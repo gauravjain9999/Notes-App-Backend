@@ -9,6 +9,7 @@ const upload = multer({
   fileFilter(req, file, cb) {
     const cleanName = file.originalname.replace(/[^\w\d.-]/g, "_");
     file.cleanedName = cleanName;
+    console.log("Cleaned File Name:", cleanName);
     const allowedTypes = /\.(png|jpg|jpeg|pdf|doc|docx)$/i;
     if (!allowedTypes.test(cleanName)) {
       return cb(

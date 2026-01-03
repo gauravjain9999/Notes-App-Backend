@@ -2,9 +2,7 @@ const express = require("express");
 const cors = require("cors");
 const helmet = require("helmet");
 const bodyParser = require("body-parser");
-
 const connectDB = require("./src/config/dbConnection");
-
 const noteRoute = require("./src/routers/notes.router");
 const userRoute = require("./src/routers/user.router");
 const notebookRouter = require("./src/routers/notebook.router");
