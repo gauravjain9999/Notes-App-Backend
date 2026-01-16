@@ -1,22 +1,20 @@
-
-const express = require("express");
 const Notebook = require("../models/notebook.model");
 const logger = require('../utils/logger');
 const formatTime = require("../utils/formatTime");
+const mongoose = require("mongoose");
 
 module.exports = {
     getNotebook: async (req, res) => {
         try {
-            logger.info('GET /notebook route accessed');
-
-            const notebooks = await Notebook.find().lean();
-
+            const userId = req.user.id;
+            logger.info(`[User ${userId}] GET /notebook route accessed`);
+            const notebooks = await Notebook.find({ userId }).lean();
             const formattedNotebooks = notebooks.map(nb => ({
                 ...nb,
                 updatedAt: formatTime(nb.updatedAt),
-                children: nb.children.map(child => ({
+                children: (nb.children || []).map(child => ({
                     ...child,
-                    updatedAt: formatTime(child.updatedAt)  // format child updatedAt
+                    updatedAt: formatTime(child.updatedAt)
                 }))
             }));
 
@@ -26,34 +24,8 @@ module.exports = {
                 },
                 apiResponseStatus: true,
             });
-        }
-        catch (error) {
-            logger.error('Error fetching notebooks:', error);
-            res.status(500).json({
-                apiResponseData: {
-                    apiResponseMessage: error.message,
-                },
-                apiResponseStatus: false,
-            });
-        }
-    },
-
-    updateNoteBook: async (req, res) => {
-        try {
-            logger.info('PATCH /notebook route accessed');
-            const notebook = await Notebook.findByIdAndUpdate(
-                req.params.id,
-                req.body,
-                { new: true }
-            );
-            res.status(200).json({
-                apiResponseData: {
-                    apiResponseMessage: "Notebook updated successfully",
-                },
-                apiResponseStatus: true,
-            });
         } catch (error) {
-            logger.error('Error updating notebook:', error);
+            logger.error('Error fetching notebooks:', error);
             res.status(500).json({
                 apiResponseData: {
                     apiResponseMessage: error.message,
@@ -65,28 +37,28 @@ module.exports = {
 
     createNotebook: async (req, res) => {
         try {
-            logger.info('POST /notebook route accessed');
-            console.log(req.body.children);
+            const userId = req.user.id;
+            const email = req.user.email;
+
+            logger.info(`[User ${userId}] POST /notebook route accessed`);
+
             const notebook = new Notebook({
+                userId: mongoose.Types.ObjectId(userId),
                 title: req.body.title,
-                createdAt: req.userData.email,   // Gmail ID here
+                createdAt: email,
                 children: (req.body.children || []).map(child => ({
                     title: child.title,
-                    createdAt: req.userData.email,
-                    updatedAt: Date.now()  // ALWAYS Gmail for children
-                }))               // initialize empty
+                    createdAt: email,
+                    updatedAt: Date.now()
+                }))
             });
 
-            if (!notebook) return res.status(404).json({
-                apiResponseData: {
-                    apiResponseMessage: "Notebook not found"
-                },
-                apiResponseStatus: false
-            });
             await notebook.save();
-            res.status(200).json({
+
+            res.status(201).json({
                 apiResponseData: {
-                    apiResponseMessage: 'Notebook created Successfully',
+                    apiResponseMessage: 'Notebook created successfully',
+                    notebookId: notebook._id
                 },
                 apiResponseStatus: true,
             });
@@ -101,13 +73,69 @@ module.exports = {
         }
     },
 
-    deleteNoteBook: async (req, res) => {
+    updateNoteBook: async (req, res) => {
         try {
-            logger.info('DELETE /notebook route accessed');
-            await Notebook.findByIdAndDelete(req.params.id);
+            const userId = req.user.id;
+            const notebookId = req.params.id;
+
+            logger.info(`[User ${userId}] PATCH /notebook/${notebookId} route accessed`);
+            const notebook = await Notebook.findOneAndUpdate(
+                { _id: notebookId, userId: mongoose.Types.ObjectId(userId) },
+                req.body,
+                { new: true }
+            );
+
+            if (!notebook) {
+                return res.status(404).json({
+                    apiResponseData: {
+                        apiResponseMessage: "Notebook not found or unauthorized"
+                    },
+                    apiResponseStatus: false
+                });
+            }
+
             res.status(200).json({
                 apiResponseData: {
-                    apiResponseMessage: 'Notebook deleted Successfully',
+                    apiResponseMessage: "Notebook updated successfully",
+                    notebook
+                },
+                apiResponseStatus: true,
+            });
+        } catch (error) {
+            logger.error('Error updating notebook:', error);
+            res.status(500).json({
+                apiResponseData: {
+                    apiResponseMessage: error.message,
+                },
+                apiResponseStatus: false,
+            });
+        }
+    },
+
+    deleteNoteBook: async (req, res) => {
+        try {
+            const userId = req.user.id;
+            const notebookId = req.params.id;
+
+            logger.info(`[User ${userId}] DELETE /notebook/${notebookId} route accessed`);
+
+            const notebook = await Notebook.findOneAndDelete({
+                _id: notebookId,
+                userId: mongoose.Types.ObjectId(userId)
+            });
+
+            if (!notebook) {
+                return res.status(404).json({
+                    apiResponseData: {
+                        apiResponseMessage: "Notebook not found or unauthorized"
+                    },
+                    apiResponseStatus: false
+                });
+            }
+
+            res.status(200).json({
+                apiResponseData: {
+                    apiResponseMessage: 'Notebook deleted successfully',
                 },
                 apiResponseStatus: true,
             });
@@ -121,5 +149,4 @@ module.exports = {
             });
         }
     }
-
 };
