@@ -1,84 +1,99 @@
 const jwt = require("jsonwebtoken");
 const admin = require("../config/firebaseAdmin");
 const logger = require("../utils/logger");
-// Detect Google token (Firebase ID Token)
-const isGoogleToken = (token) => {
-  // Google ID token always has 3 parts and is long (1200+ characters)
-  return token && token.length > 500;
-};
+const User = require("../models/user.model"); // 🔥 IMPORTANT
+
+// Firebase ID tokens are very long
+const isGoogleToken = (token) => token && token.length > 500;
 
 const verifyToken = async (req, res, next) => {
 
+  const requestId = req.id || "N/A";
+
   try {
     const authHeader =
-      req.headers["authorization"] || req.body.authorizationToken;
+      req.headers["authorization"] || req.body?.authorizationToken;
 
     if (!authHeader) {
-      logger.info("No token provided");
+      logger.warn(`[${requestId}] Auth failed - No token provided`);
       return res.status(401).json({
+        apiResponseStatus: false,
         apiResponseData: { apiResponseMessage: "No token provided" },
-        apiResponseStatus: false,
       });
     }
 
-    const token = authHeader.split(" ")[1];
-
-    if (!token) {
-      logger.info("Token format invalid");
+    // Expect: Bearer <token>
+    const parts = authHeader.split(" ");
+    if (parts.length !== 2 || parts[0] !== "Bearer") {
+      logger.warn(`[${requestId}] Auth failed - Invalid token format`);
       return res.status(401).json({
-        apiResponseData: { apiResponseMessage: "Token format invalid" },
         apiResponseStatus: false,
+        apiResponseData: { apiResponseMessage: "Invalid token format" },
       });
     }
 
-    // --------------------------
-    // 1️⃣ GOOGLE TOKEN DETECTION
-    // --------------------------
+    const token = parts[1];
+
+    /* --------------------------------------------------
+       🔵 GOOGLE / FIREBASE AUTH
+    -------------------------------------------------- */
     if (isGoogleToken(token)) {
-      try {
-        logger.info("Google Token detected → verifying with Firebase...");
-        const decoded = await admin.auth().verifyIdToken(token);
-        logger.info("Google Token verified successfully", decoded);
-        req.userData = {
-          uid: decoded.uid,
+      const decoded = await admin.auth().verifyIdToken(token);
+
+      // 🔥 FIND OR CREATE USER IN MONGODB
+      let user = await User.findOne({ firebaseUid: decoded.uid });
+
+      if (!user) {
+        user = await User.create({
+          firebaseUid: decoded.uid,
           email: decoded.email,
           name: decoded.name,
-          picture: decoded.picture,
-          provider: "google",
-        };
-
-        return next();
-      } catch (err) {
-        logger.error("Google Token Verification Failed:", err);
-        return res.status(401).json({
-          apiResponseData: { apiResponseMessage: "Invalid Google Token" },
-          apiResponseStatus: false,
+          userType: "Male", // default for Google login
         });
       }
-    }
-    // --------------------------
-    // 2️⃣ NORMAL JWT FROM BACKEND
-    // --------------------------
-    try {
-      logger.info("Normal JWT detected → verifying...", token);
-      const decoded = jwt.verify(token, process.env.JWT_SECRET || 'JWT_SECRET');
-      req.userData = decoded;
-      return next();
-    } catch (err) {
-      logger.error("Normal JWT Verification Error:", err);
-      return res.status(401).json({
-        apiResponseData: { apiResponseMessage: "Invalid or expired token" },
-        apiResponseStatus: false,
+
+      // ✅ ALWAYS MONGODB ObjectId
+      req.user = {
+        id: user._id,
+        email: user.email,
+        provider: "google",
+      };
+
+      logger.info(`[${requestId}] Google user authenticated`, {
+        userId: req.user?.id ? String(req.user.id) : "UNKNOWN",
       });
+
+      return next();
     }
+
+    /* --------------------------------------------------
+       🔵 NORMAL JWT AUTH
+    -------------------------------------------------- */
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+
+    // decoded.userId MUST be MongoDB _id
+    req.user = {
+      id: decoded.userId,
+      email: decoded.email || null,
+      provider: "local",
+    };
+
+    logger.info(`[${requestId}] JWT user authenticated`, {
+      userId: req.user?.id ? String(req.user.id) : "UNKNOWN",
+    });
+    return next();
+
   } catch (error) {
-    logger.error("Unexpected Auth Error:", error);
-    return res.status(500).json({
-      apiResponseData: { apiResponseMessage: "Authentication failed" },
+    logger.error(`[${requestId}] Authentication failed`, {
+      message: error.message,
+      stack: error.stack,
+    });
+
+    return res.status(401).json({
       apiResponseStatus: false,
+      apiResponseData: { apiResponseMessage: "Authentication failed" },
     });
   }
 };
 
 module.exports = verifyToken;
-

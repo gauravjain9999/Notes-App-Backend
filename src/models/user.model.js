@@ -1,10 +1,24 @@
-const mongoose = require('mongoose');
+const mongoose = require("mongoose");
+
 const userSchema = new mongoose.Schema({
-    _id: mongoose.Schema.Types.ObjectId,
+    // MongoDB will auto-create _id (ObjectId)
+
+    firebaseUid: {
+        type: String,
+        unique: true,
+        sparse: true, // allows local users without this field
+    },
+
     username: String,
     password: String,
     phone: Number,
     email: String,
-    userType: String,
-});
-module.exports = mongoose.model('user', userSchema);
+
+    userType: {
+        type: String,
+        enum: ['Male', 'Female', 'Other'],
+        required: true,
+    },
+}, { timestamps: true });
+
+module.exports = mongoose.model("user", userSchema);

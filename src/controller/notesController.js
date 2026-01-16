@@ -16,8 +16,13 @@ module.exports = {
   getNotes: async (req, res) => {
     try {
       // Find all notes in the database
-      const notes = await Note.find();
+      const notes = await Note.find({
+        userId: req.user.id,
+        isDeleted: false
+      }).sort({ updatedAt: -1 });
+      console.log('All notes:', notes);
       // Return the notes list to the client
+
       logger.info('GET / route accessed');
       res.status(200).json({
         apiResponseData: {
@@ -25,7 +30,7 @@ module.exports = {
            * An array of objects containing the notes data.
            * @type {Array<Object>}
            */
-          notesList: notes,
+          notesList: notes
         },
         /**
          * A boolean indicating whether the API request was
@@ -50,32 +55,67 @@ module.exports = {
   },
 
   //Add Notes
-  addNotes: (req, res) => {
-    logger.info('POST / route accessed');
-    let notesData = new Note({
-      _id: new mongoose.Types.ObjectId(),
-      title: req.body.title,
-      description: req.body.description,
+  addNotes: async (req, res) => {
+    const requestId = req.id || 'N/A';
+    const userId = req.user?.id || req.user?._id;
+    console.log('Adding note for userId:', req.user);
+    logger.info(`[${requestId}] Add Note API called`, {
+      route: 'POST /notes',
+      userId
     });
-    notesData
-      .save()
-      .then((result) => {
-        res.status(200).json({
+
+    try {
+      if (!userId) {
+        logger.warn(`[${requestId}] Add Note failed - user not authenticated`);
+        return res.status(401).json({
+          apiResponseStatus: false,
           apiResponseData: {
-            apiResponseMessage: 'Your Notes is Successfully created.',
-          },
-          apiResponseStatus: true,
-        });
-      })
-      .catch((err) => {
-        res.status(500).json({
-          apiResponseData: {
-            apiResponseMessage: 'Something Went Wrong.Please try again !',
-          },
+            apiResponseMessage: 'Unauthorized'
+          }
         });
       }
-      );
+
+      logger.debug(`[${requestId}] Creating note`, {
+        title: req.body?.title
+      });
+
+      const note = new Note({
+        title: req.body.title,
+        description: req.body.description,
+        userId
+      });
+
+      const savedNote = await note.save();
+
+      logger.info(`[${requestId}] Note created successfully`, {
+        noteId: savedNote._id,
+        userId
+      });
+
+      return res.status(201).json({
+        apiResponseStatus: true,
+        apiResponseData: {
+          apiResponseMessage: 'Your note was created successfully.',
+          noteId: savedNote._id
+        }
+      });
+
+    } catch (error) {
+      logger.error(`[${requestId}] Add Note error`, {
+        userId,
+        message: error.message,
+        stack: error.stack
+      });
+
+      return res.status(500).json({
+        apiResponseStatus: false,
+        apiResponseData: {
+          apiResponseMessage: 'Something went wrong. Please try again!'
+        }
+      });
+    }
   },
+
 
   /**
    * @function uploadFile
@@ -189,7 +229,7 @@ module.exports = {
     //Delete All Notes
     logger.info('PATCH / route accessed');
     try {
-      await Note.deleteMany({});
+      await Note.deleteMany({ userId: req.user.id });
       res.status(200).json({
         apiResponseData: {
           apiResponseMessage: 'All Notes Deleted Successfully.',
@@ -213,6 +253,7 @@ module.exports = {
     try {
       await Note.deleteOne({
         _id: new mongoose.mongo.ObjectId(objectId),
+        userId: req.user.id
       });
       res.status(200).json({
         apiResponseData: {
@@ -234,7 +275,7 @@ module.exports = {
 
     try {
       const deletedNote = await Note.findByIdAndUpdate(
-        id,
+        { id, userId: req.user.id },
         {
           $set: {
             isDeleted: true,
@@ -337,7 +378,7 @@ module.exports = {
 
       // Update Note
       const updatedNote = await Note.findOneAndUpdate(
-        { _id: objectId },
+        { _id: objectId, userId: req.user.id },
         { $set: updateData },
         { new: true }
       );
@@ -373,7 +414,7 @@ module.exports = {
   restoreNote: async (req, res) => {
     try {
       const { id } = req.params;
-      const note = await Note.findOne({ _id: id });
+      const note = await Note.findOne({ _id: id, userId: req.user.id });
 
       console.log(note)
       if (!note) {
@@ -408,6 +449,7 @@ module.exports = {
   shortcutNotes: async (req, res) => {
     try {
       const favouriteNotes = await Note.find({
+        userId: req.user.id,
         isFavourite: true
       }).sort({ updatedAt: -1 });
       if (!favouriteNotes || favouriteNotes.length === 0) {
@@ -460,7 +502,7 @@ module.exports = {
       }
 
       const note = await Note.findOneAndUpdate(
-        { _id: noteId },
+        { _id: noteId, userId: req.user.id },
         { $set: { isFavourite: false } },
         { new: true }
       );

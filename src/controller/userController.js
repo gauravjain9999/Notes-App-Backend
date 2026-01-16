@@ -16,22 +16,25 @@ module.exports = {
    * @returns {Promise} - A promise that resolves to an object containing the user data.
    */
   signUpUser: async (req, res) => {
-    /**
-     * @description Hash the password using bcrypt.hash method.
-     * @param {String} password - The password to be hashed.
-     * @param {Number} saltRounds - The number of salt rounds to use.
-     * @param {Function} callback - The callback function to be called after hashing is done.
-     */
-    bcrypt.hash(req.body.password, 10, (err, hash) => {
-      if (err) {
-        return res.status(500).send(err);
-      } else {
-        /**
-         * @description Create a new user object and save it to the database.
-         * @type {Object}
-         */
+    try {
+      // Check if user already exists
+      const existingUser = await User.findOne({ email: req.body.email });
+      if (existingUser) {
+        return res.status(409).json({
+          apiResponseStatus: false,
+          apiResponseData: {
+            apiResponseMessage: "User already exists with this email"
+          }
+        });
+      }
+      // Hash password
+      bcrypt.hash(req.body.password, 10, async (err, hash) => {
+        if (err) {
+          return res.status(500).json({ error: err.message });
+        }
+        // Create user with ObjectId
         const user = new User({
-          _id: new mongoose.Types.ObjectId,
+          _id: new mongoose.Types.ObjectId(),
           username: req.body.username,
           password: hash,
           phone: req.body.phone,
@@ -39,20 +42,37 @@ module.exports = {
           userType: req.body.userType
         });
 
-        user.save().then((result) => {
-          console.log('Result', result);
-          res.status(200).json({
-            apiResponseData: {
-              apiResponseMessage: 'Successfully SignUp. Please Login Now!'
-            },
-            apiResponseStatus: true
-          });
-        }).catch((err) => {
-          res.status(500).json({ error: err });
+        const result = await user.save();
+
+        logger.info("User registered successfully", {
+          userId: result._id.toString(),
+          email: result.email
         });
-      }
-    });
+
+        return res.status(201).json({
+          apiResponseStatus: true,
+          apiResponseData: {
+            apiResponseMessage: "Successfully SignUp. Please Login Now!",
+            userId: result._id.toString() // ✅ Helpful for frontend
+          }
+        });
+      });
+
+    } catch (error) {
+      logger.error("Signup error", {
+        message: error.message,
+        stack: error.stack
+      });
+
+      return res.status(500).json({
+        apiResponseStatus: false,
+        apiResponseData: {
+          apiResponseMessage: "Something went wrong during signup"
+        }
+      });
+    }
   },
+
   /**
    * @function loginUser
    * @description This function is used to log in the user.
@@ -89,6 +109,7 @@ module.exports = {
             // Create JWT token
             const authorizationToken = jwt.sign({
               username: user[0].username,
+              userId: user[0]._id.toString(),
               userType: user[0].userType,
               email: user[0].email,
               phone: user[0].phone
