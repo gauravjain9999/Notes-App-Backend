@@ -1,8 +1,6 @@
 const Note = require('../models/note.model');
 const mongoose = require('mongoose');
 const logger = require('../utils/logger');
-const crypto = require('crypto');
-const path = require('path');
 require('dotenv').config();
 
 //Get Notes
@@ -115,7 +113,6 @@ module.exports = {
       });
     }
   },
-
 
   /**
    * @function uploadFile
@@ -250,11 +247,13 @@ module.exports = {
   //Delete Notes
   deleteNotes: async (req, res) => {
     const objectId = req.params.id;
+    logger.info(`DELETE /delete-notes/${objectId} route accessed`);
     try {
       await Note.deleteOne({
         _id: new mongoose.mongo.ObjectId(objectId),
         userId: req.user.id
       });
+      logger.info(`Note deleted successfully: ${objectId}`);
       res.status(200).json({
         apiResponseData: {
           apiResponseMessage: 'Note deleted successfully'
@@ -262,7 +261,7 @@ module.exports = {
         apiResponseStatus: true
       });
     } catch (error) {
-      console.error('Delete Note Error:', error);
+      logger.error('Delete Note Error:', error);
       res.status(500).json({
         apiResponseData: { apiResponseMessage: 'Something went wrong' },
         apiResponseStatus: false
@@ -274,15 +273,18 @@ module.exports = {
     const { id } = req.params;
 
     try {
-      const deletedNote = await Note.findByIdAndUpdate(
-        { id, userId: req.user.id },
+      const deletedNote = await Note.findOneAndUpdate(
+        {
+          _id: id,
+          userId: req.user.id
+        },
         {
           $set: {
             isDeleted: true,
             deletedAt: new Date()
           }
         },
-        { new: true } // Return updated document
+        { new: true }
       );
 
       if (!deletedNote) {
@@ -425,7 +427,7 @@ module.exports = {
       }
 
       note.isDeleted = false;
-      note.deletedAt = null;
+      note.deletedAt = new Date();
 
       const restoredNote = await note.save();
 
