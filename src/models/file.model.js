@@ -1,13 +1,17 @@
 const mongoose = require("mongoose");
 
 const FileSchema = new mongoose.Schema({
-  name: String,
-  downloadURL: String,
-  mimeType: String,
-  size: Number,
-  presignedURL: String,
-  uploadedAt: { type: Date, default: Date.now },
-  createdBy: String // email or userId
+  userId: {           // store unique user ID
+    type: String,
+    required: true,
+    index: true
+  },
+  name: { type: String, required: true },
+  downloadURL: { type: String, default: null }, // optional at first
+  mimeType: { type: String },
+  size: { type: Number },
+  presignedURL: { type: String },
+  uploadedAt: { type: Date, default: Date.now }
 });
 
 module.exports = mongoose.model("File", FileSchema);

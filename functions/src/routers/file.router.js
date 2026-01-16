@@ -1,12 +1,11 @@
-
 const express = require('express');
 const router = new express.Router();
-const upload = require('../middleware/file-upload');
 const fileController = require('../controller/file.controller');
-
-router.get('/files', fileController.file);
-router.delete('/delete-file/:id', fileController.deleteFile);
-router.post('/upload', fileController.uploadFile);
-router.post('/confirm-upload', fileController.confirmUpload);
+const verifyToken = require('../middleware/auth');
+router.use(verifyToken);
+router.get('/files', verifyToken, fileController.file);
+router.delete('/delete-file/:id', verifyToken, fileController.deleteFile);
+router.post('/upload', verifyToken, fileController.uploadFile);
+router.post('/confirm-upload', verifyToken, fileController.confirmUpload);
 
 module.exports = router;

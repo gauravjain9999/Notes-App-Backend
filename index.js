@@ -35,6 +35,6 @@ app.use(verifyToken, notebookRouter);
 app.use(verifyToken, fileRouter)
 
 app.listen(port, () => {
-    logger.info(`Server started on http://localhost:${port}`);
+    logger.info(`***** Server started on http://localhost:${port} *****`);
     console.log(`App is Running on Port ${port}`);
 })
