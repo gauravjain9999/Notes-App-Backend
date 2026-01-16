@@ -1,6 +1,8 @@
 const Note = require('../models/note.model');
 const mongoose = require('mongoose');
 const logger = require('../utils/logger');
+const crypto = require('crypto');
+const path = require('path');
 require('dotenv').config();
 
 module.exports = {
@@ -83,7 +85,6 @@ module.exports = {
         apiResponseStatus: true
       });
     } catch (error) {
-      logger.error('Error deleting note:', error);
       res.status(500).json({
         apiResponseData: { apiResponseMessage: 'Something went wrong' },
         apiResponseStatus: false
@@ -93,13 +94,9 @@ module.exports = {
 
   deleteInTrashedNotes: async (req, res) => {
     const { id } = req.params;
-
     try {
-      const deletedNote = await Note.findOneAndUpdate(
-        {
-          _id: id,
-          userId: req.user.id
-        },
+      const deletedNote = await Note.findByIdAndUpdate(
+        id,
         {
           $set: {
             isDeleted: true,
@@ -205,7 +202,7 @@ module.exports = {
       }
 
       note.isDeleted = false;
-      note.deletedAt = new Date();
+      note.deletedAt = null;
 
       const restoredNote = await note.save();
 
