@@ -33,7 +33,6 @@ module.exports = {
             });
         }
     },
-
     registerToken: async (req, res) => {
         try {
             const { token, device } = req.body;
