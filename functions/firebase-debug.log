@@ -1,0 +1,119 @@
+[debug] [2026-03-21T17:05:48.645Z] ----------------------------------------------------------------------
+[debug] [2026-03-21T17:05:48.648Z] Command:       /opt/homebrew/Cellar/node/24.9.0/bin/node /opt/homebrew/bin/firebase deploy --only functions
+[debug] [2026-03-21T17:05:48.648Z] CLI Version:   15.3.1
+[debug] [2026-03-21T17:05:48.648Z] Platform:      darwin
+[debug] [2026-03-21T17:05:48.648Z] Node Version:  v24.9.0
+[debug] [2026-03-21T17:05:48.648Z] Time:          Sat Mar 21 2026 22:35:48 GMT+0530 (India Standard Time)
+[debug] [2026-03-21T17:05:48.648Z] ----------------------------------------------------------------------
+[debug] 
+[debug] [2026-03-21T17:05:49.693Z] > command requires scopes: ["email","openid","https://www.googleapis.com/auth/cloudplatformprojects.readonly","https://www.googleapis.com/auth/firebase","https://www.googleapis.com/auth/cloud-platform"]
+[debug] [2026-03-21T17:05:49.694Z] > authorizing via signed-in user (gauravjain0931@gmail.com)
+[debug] [2026-03-21T17:05:49.694Z] [iam] checking project authenticator-app-d6c4d for permissions ["cloudfunctions.functions.create","cloudfunctions.functions.delete","cloudfunctions.functions.get","cloudfunctions.functions.list","cloudfunctions.functions.update","cloudfunctions.operations.get","firebase.projects.get"]
+[debug] [2026-03-21T17:05:49.694Z] Checked if tokens are valid: true, expires at: 1774116230220
+[debug] [2026-03-21T17:05:49.694Z] Checked if tokens are valid: true, expires at: 1774116230220
+[debug] [2026-03-21T17:05:49.695Z] >>> [apiv2][query] POST https://cloudresourcemanager.googleapis.com/v1/projects/authenticator-app-d6c4d:testIamPermissions [none]
+[debug] [2026-03-21T17:05:49.695Z] >>> [apiv2][(partial)header] POST https://cloudresourcemanager.googleapis.com/v1/projects/authenticator-app-d6c4d:testIamPermissions x-goog-quota-user=projects/authenticator-app-d6c4d
+[debug] [2026-03-21T17:05:49.695Z] >>> [apiv2][body] POST https://cloudresourcemanager.googleapis.com/v1/projects/authenticator-app-d6c4d:testIamPermissions {"permissions":["cloudfunctions.functions.create","cloudfunctions.functions.delete","cloudfunctions.functions.get","cloudfunctions.functions.list","cloudfunctions.functions.update","cloudfunctions.operations.get","firebase.projects.get"]}
+[debug] [2026-03-21T17:05:51.169Z] <<< [apiv2][status] POST https://cloudresourcemanager.googleapis.com/v1/projects/authenticator-app-d6c4d:testIamPermissions 200
+[debug] [2026-03-21T17:05:51.169Z] <<< [apiv2][body] POST https://cloudresourcemanager.googleapis.com/v1/projects/authenticator-app-d6c4d:testIamPermissions {"permissions":["cloudfunctions.functions.create","cloudfunctions.functions.delete","cloudfunctions.functions.get","cloudfunctions.functions.list","cloudfunctions.functions.update","cloudfunctions.operations.get","firebase.projects.get"]}
+[debug] [2026-03-21T17:05:51.169Z] Checked if tokens are valid: true, expires at: 1774116230220
+[debug] [2026-03-21T17:05:51.169Z] Checked if tokens are valid: true, expires at: 1774116230220
+[debug] [2026-03-21T17:05:51.169Z] >>> [apiv2][query] POST https://iam.googleapis.com/v1/projects/authenticator-app-d6c4d/serviceAccounts/authenticator-app-d6c4d@appspot.gserviceaccount.com:testIamPermissions [none]
+[debug] [2026-03-21T17:05:51.170Z] >>> [apiv2][body] POST https://iam.googleapis.com/v1/projects/authenticator-app-d6c4d/serviceAccounts/authenticator-app-d6c4d@appspot.gserviceaccount.com:testIamPermissions {"permissions":["iam.serviceAccounts.actAs"]}
+[debug] [2026-03-21T17:05:52.823Z] <<< [apiv2][status] POST https://iam.googleapis.com/v1/projects/authenticator-app-d6c4d/serviceAccounts/authenticator-app-d6c4d@appspot.gserviceaccount.com:testIamPermissions 200
+[debug] [2026-03-21T17:05:52.823Z] <<< [apiv2][body] POST https://iam.googleapis.com/v1/projects/authenticator-app-d6c4d/serviceAccounts/authenticator-app-d6c4d@appspot.gserviceaccount.com:testIamPermissions {"permissions":["iam.serviceAccounts.actAs"]}
+[info] 
+[info] === Deploying to 'authenticator-app-d6c4d'...
+[info] 
+[info] i  deploying functions 
+[debug] [2026-03-21T17:05:52.825Z] Checked if tokens are valid: true, expires at: 1774116230220
+[debug] [2026-03-21T17:05:52.825Z] Checked if tokens are valid: true, expires at: 1774116230220
+[debug] [2026-03-21T17:05:52.825Z] >>> [apiv2][query] GET https://cloudresourcemanager.googleapis.com/v1/projects/authenticator-app-d6c4d [none]
+[debug] [2026-03-21T17:05:53.236Z] <<< [apiv2][status] GET https://cloudresourcemanager.googleapis.com/v1/projects/authenticator-app-d6c4d 200
+[debug] [2026-03-21T17:05:53.236Z] <<< [apiv2][body] GET https://cloudresourcemanager.googleapis.com/v1/projects/authenticator-app-d6c4d {"projectNumber":"1014844486308","projectId":"authenticator-app-d6c4d","lifecycleState":"ACTIVE","name":"Authenticator App","labels":{"firebase":"enabled"},"createTime":"2020-05-03T13:18:16.902Z"}
+[info] i  functions: preparing codebase default for deployment 
+[info] i  functions: ensuring required API cloudfunctions.googleapis.com is enabled... 
+[info] i  functions: ensuring required API cloudbuild.googleapis.com is enabled... 
+[info] i  artifactregistry: ensuring required API artifactregistry.googleapis.com is enabled... 
+[debug] [2026-03-21T17:05:53.238Z] Checked if tokens are valid: true, expires at: 1774116230220
+[debug] [2026-03-21T17:05:53.238Z] Checked if tokens are valid: true, expires at: 1774116230220
+[debug] [2026-03-21T17:05:53.238Z] >>> [apiv2][query] GET https://firebase.googleapis.com/v1beta1/projects/authenticator-app-d6c4d/adminSdkConfig [none]
+[debug] [2026-03-21T17:05:53.684Z] <<< [apiv2][status] GET https://firebase.googleapis.com/v1beta1/projects/authenticator-app-d6c4d/adminSdkConfig 200
+[debug] [2026-03-21T17:05:53.685Z] <<< [apiv2][body] GET https://firebase.googleapis.com/v1beta1/projects/authenticator-app-d6c4d/adminSdkConfig {"projectId":"authenticator-app-d6c4d","databaseURL":"https://authenticator-app-d6c4d.firebaseio.com","storageBucket":"authenticator-app-d6c4d.firebasestorage.app"}
+[debug] [2026-03-21T17:05:53.688Z] Validating nodejs source
+[warn] ⚠  functions: Couldn't find firebase-functions package in your source code. Have you run 'npm install'? 
+[debug] [2026-03-21T17:05:53.691Z] getFunctionsSDKVersion encountered error: Cannot find module '/Users/gauravjain0926/Documents/Notes-App-Backend/functions/node_modules/firebase-functions/lib/v2/index.js' {"code":"MODULE_NOT_FOUND","path":"/Users/gauravjain0926/Documents/Notes-App-Backend/functions/node_modules/firebase-functions"}
+[debug] [2026-03-21T17:05:53.692Z] checkFunctionsSDKVersion encountered error: Invalid Version:  {}
+[debug] [2026-03-21T17:05:53.693Z] > [functions] package.json contents: {
+  "name": "functions",
+  "description": "Cloud Functions for Firebase",
+  "scripts": {
+    "serve": "firebase emulators:start --only functions",
+    "shell": "firebase functions:shell",
+    "start": "npm run shell",
+    "deploy": "firebase deploy --only functions",
+    "logs": "firebase functions:log"
+  },
+  "engines": {
+    "node": "22"
+  },
+  "main": "index.js",
+  "dependencies": {
+    "@aws-sdk/client-s3": "^3.937.0",
+    "@google/generative-ai": "^0.24.1",
+    "axios": "^1.11.0",
+    "bcrypt": "^5.1.0",
+    "bcryptjs": "^3.0.2",
+    "body-parser": "^1.20.3",
+    "cors": "^2.8.5",
+    "crypto": "^1.0.1",
+    "dotenv": "^16.6.1",
+    "express": "^4.21.2",
+    "express-async-handler": "^1.2.0",
+    "express-fileupload": "^1.4.0",
+    "express-validator": "^7.3.0",
+    "firebase-admin": "^13.6.0",
+    "firebase-functions": "^7.0.2",
+    "fs": "^0.0.1-security",
+    "helmet": "^6.0.1",
+    "jsonwebtoken": "^9.0.0",
+    "mongoose": "^6.13.8",
+    "multer": "^1.4.5-lts.1",
+    "node-cron": "^4.2.1",
+    "nodemailer": "^7.0.5",
+    "openai": "^5.10.2",
+    "razorpay": "^2.9.6",
+    "socket.io": "^4.6.1",
+    "uuid": "^13.0.0",
+    "validation": "^0.0.1",
+    "winston": "^3.17.0"
+  },
+  "devDependencies": {
+    "chai": "^4.3.7",
+    "cloudinary": "^1.41.3",
+    "firebase-functions-test": "^3.4.1",
+    "mocha": "^10.2.0",
+    "nodemon": "^3.1.10"
+  },
+  "overrides": {
+    "ws": "8.18.3"
+  },
+  "private": true
+}
+[debug] [2026-03-21T17:05:53.693Z] Building nodejs source
+[info] i  functions: Loading and analyzing source code for codebase default to determine what to deploy 
+[debug] [2026-03-21T17:05:53.694Z] Could not parse firebase-functions version '' into semver.
+[debug] [2026-03-21T17:05:53.694Z] Could not find functions.yaml. Must use http discovery
+[debug] [2026-03-21T17:05:53.812Z] Error: Cannot find module '/Users/gauravjain0926/Documents/Notes-App-Backend/functions/node_modules/firebase-functions/lib/v2/index.js'
+    at createEsmNotFoundErr (node:internal/modules/cjs/loader:1457:15)
+    at finalizeEsmResolution (node:internal/modules/cjs/loader:1446:9)
+    at resolveExports (node:internal/modules/cjs/loader:678:14)
+    at Module._findPath (node:internal/modules/cjs/loader:745:31)
+    at Module._resolveFilename (node:internal/modules/cjs/loader:1405:27)
+    at require.resolve (node:internal/modules/helpers:163:19)
+    at Delegate.findFunctionsBinary (/opt/homebrew/lib/node_modules/firebase-tools/lib/deploy/functions/runtimes/node/index.js:101:33)
+    at Delegate.spawnFunctionsProcess (/opt/homebrew/lib/node_modules/firebase-tools/lib/deploy/functions/runtimes/node/index.js:131:30)
+    at Delegate.serveAdmin (/opt/homebrew/lib/node_modules/firebase-tools/lib/deploy/functions/runtimes/node/index.js:152:35)
+    at Delegate.discoverBuild (/opt/homebrew/lib/node_modules/firebase-tools/lib/deploy/functions/runtimes/node/index.js:192:41)
+[error] 
+[error] Error: An unexpected error has occurred.

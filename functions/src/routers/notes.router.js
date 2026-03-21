@@ -1,7 +1,6 @@
 const express = require('express');
 const router = new express.Router();
 const notesController = require('../controller/notesController');
-const emailController = require('../controller/emailController');
 const openAIBotController = require('../controller/openAIBotController');
 const remindersController = require('../controller/remindersController');
 const notificationsController = require('../controller/notification.controller');
@@ -13,7 +12,6 @@ router.delete('/delete-notes/:id', verifyToken, notesController.deleteNotes);
 router.delete('/delete-trashed-notes/:id', verifyToken, notesController.deleteInTrashedNotes);
 router.delete('/delete-all', verifyToken, notesController.deleteAllNotes)
 router.put('/update-notes/:id', verifyToken, notesController.editNotes);
-router.post('/send-email', emailController.sendEmail);
 router.post('/notes/api/chat', openAIBotController.openAIBot);
 router.patch('/notes-set-reminder/:id/reminder', verifyToken, remindersController.setReminder);
 router.patch('/notes-restore/:id', verifyToken, notesController.restoreNote);
