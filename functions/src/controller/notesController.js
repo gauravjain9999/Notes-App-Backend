@@ -540,5 +540,117 @@ module.exports = {
         stack: error.stack
       });
     };
+  },
+
+  createQuickNote: async (req, res) => {
+    try {
+      const { description } = req.body;
+      const note = new Note({
+        userId: req.user.id,
+        type: "quick",
+        title: "Quick Notes",
+        description
+      });
+
+      const savedNote = await note.save();
+
+      res.status(201).json({
+        apiResponseData: {
+          note: savedNote,
+          apiResponseMessage: 'Quick note created successfully'
+        },
+        apiResponseStatus: true
+      });
+    } catch (error) {
+      logger.error('Create Quick Note Error:', error);
+      res.status(500).json({
+        apiResponseData: { apiResponseMessage: 'Something went wrong' },
+        apiResponseStatus: false
+      });
+    }
+  },
+
+  createIdeaNote: async (req, res) => {
+    try {
+      const { description } = req.body;
+      const note = new Note({
+        userId: req.user.id,
+        type: "idea",
+        title: "Ideas",
+        description
+      });
+
+      const savedNote = await note.save();
+
+      res.status(201).json({
+        apiResponseData: {
+          note: savedNote,
+          apiResponseMessage: 'Idea note created successfully'
+        },
+        apiResponseStatus: true
+      });
+    } catch (error) {
+      logger.error('Create Idea Note Error:', error);
+      res.status(500).json({
+        apiResponseData: { apiResponseMessage: 'Something went wrong' },
+        apiResponseStatus: false
+      });
+    }
+  },
+
+  createTodoNote: async (req, res) => {
+    try {
+      const { description } = req.body;
+      const note = new Note({
+        userId: req.user.id,
+        type: 'todo',
+        title: 'To-Do',
+        description
+      });
+
+      const savedNote = await note.save();
+
+      res.status(201).json({
+        apiResponseData: {
+          note: savedNote,
+          apiResponseMessage: 'Todo note created successfully'
+        },
+        apiResponseStatus: true
+      });
+    } catch (error) {
+      logger.error('Create Todo Note Error:', error);
+      res.status(500).json({
+        apiResponseData: { apiResponseMessage: 'Something went wrong' },
+        apiResponseStatus: false
+      });
+    }
+  },
+
+  createReminderNote: async (req, res) => {
+    try {
+      const { description } = req.body;
+      const note = new Note({
+        userId: req.user.id,
+        type: "reminder",
+        title: 'Reminders',
+        description,
+      });
+
+      const savedNote = await note.save();
+
+      res.status(201).json({
+        apiResponseData: {
+          note: savedNote,
+          apiResponseMessage: 'Reminder note created successfully'
+        },
+        apiResponseStatus: true
+      });
+    } catch (error) {
+      logger.error('Create Reminder Note Error:', error);
+      res.status(500).json({
+        apiResponseData: { apiResponseMessage: 'Something went wrong' },
+        apiResponseStatus: false
+      });
+    }
   }
 };
