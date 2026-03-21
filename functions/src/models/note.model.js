@@ -7,8 +7,14 @@ const noteSchema = new mongoose.Schema(
       required: true,
       index: true,
     },
+    type: {
+      type: String,
+      enum: ["quick", "idea", "todo", "reminder"],
+      required: false
+    },
     title: String,
     description: String,
+    pin: { type: Boolean, default: false },
     isFavourite: { type: Boolean, default: false },
     deletedAt: { type: Date, default: null },
     reminder: { type: Date, default: null },

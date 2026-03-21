@@ -32,7 +32,8 @@ app.use(bodyParser.json());
 app.use(userRoute);
 app.use(verifyToken, noteRouter);
 app.use(verifyToken, notebookRouter);
-app.use(verifyToken, fileRouter)
+app.use(verifyToken, fileRouter);
+
 
 app.listen(port, () => {
     logger.info(`***** Server started on http://localhost:${port} *****`);
