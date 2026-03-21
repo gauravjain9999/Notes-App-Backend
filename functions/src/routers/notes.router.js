@@ -12,7 +12,6 @@ router.delete('/delete-notes/:id', verifyToken, notesController.deleteNotes);
 router.delete('/delete-trashed-notes/:id', verifyToken, notesController.deleteInTrashedNotes);
 router.delete('/delete-all', verifyToken, notesController.deleteAllNotes)
 router.put('/update-notes/:id', verifyToken, notesController.editNotes);
-router.post('/send-email', emailController.sendEmail);
 router.post('/notes/api/chat', openAIBotController.openAIBot);
 router.patch('/notes-set-reminder/:id/reminder', verifyToken, remindersController.setReminder);
 router.patch('/notes-restore/:id', verifyToken, notesController.restoreNote);
