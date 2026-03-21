@@ -21,4 +21,9 @@ router.get('/shortcut-list', verifyToken, notesController.shortcutNotes);
 router.patch('/remove-shortcut/:id', verifyToken, notesController.removedShortcutNotes);
 router.post('/send-notification', verifyToken, notificationsController.sendNotification);
 router.post('/notifications-token', notificationsController.registerToken);
+router.post('/quick-notes', verifyToken, notesController.createQuickNote);
+router.post('/ideas', verifyToken, notesController.createIdeaNote);
+router.post('/todos', verifyToken, notesController.createTodoNote);
+router.post('/reminders', verifyToken, notesController.createReminderNote);
+
 module.exports = router;
