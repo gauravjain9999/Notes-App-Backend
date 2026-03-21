@@ -1,7 +1,6 @@
 const express = require('express');
 const router = new express.Router();
 const notesController = require('../controller/notesController');
-const emailController = require('../controller/emailController');
 const openAIBotController = require('../controller/openAIBotController');
 const remindersController = require('../controller/remindersController');
 const notificationsController = require('../controller/notification.controller');
