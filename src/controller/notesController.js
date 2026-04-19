@@ -1,7 +1,9 @@
 const Note = require('../models/note.model');
 const mongoose = require('mongoose');
+const cron = require('node-cron');
 const logger = require('../utils/logger');
 require('dotenv').config();
+let isCronStarted = false; // prevent multiple cron instances
 
 //Get Notes
 module.exports = {
@@ -18,7 +20,6 @@ module.exports = {
         userId: req.user.id,
         isDeleted: false
       }).sort({ updatedAt: -1 });
-      console.log('All notes:', notes);
       // Return the notes list to the client
       logger.info('GET / route accessed');
       res.status(200).json({
@@ -55,7 +56,6 @@ module.exports = {
   addNotes: async (req, res) => {
     const requestId = req.id || 'N/A';
     const userId = req.user?.id || req.user?._id;
-    console.log('Adding note for userId:', req.user);
     logger.info(`[${requestId}] Add Note API called`, {
       route: 'POST /notes',
       userId
@@ -222,22 +222,48 @@ module.exports = {
   // },
 
   deleteAllNotes: async (req, res) => {
-    //Delete All Notes
-    logger.info('PATCH / route accessed');
+    const secret = req.headers['x-cron-secret'];
+    // if (secret !== process.env.CRON_SECRET) {
+    //   return res.status(403).json({
+    //     apiResponseData: {
+    //       apiResponseMessage: 'Something went wrong. Please try again!'
+    //     },
+    //     apiResponseStatus: false
+    //   });
+    // }
+    logger.info('DELETE old notes cron initialized');
     try {
-      await Note.deleteMany({ userId: req.user.id });
-      res.status(200).json({
+      if (!isCronStarted) {
+        cron.schedule('* * * * *', async () => {
+          logger.info('Running cron to delete old notes...');
+          const SEVEN_DAYS_AGO = new Date();
+          SEVEN_DAYS_AGO.setDate(SEVEN_DAYS_AGO.getDate() - 7); // ⏱️ 7 days ago
+          try {
+            const result = await Note.deleteMany({
+              isDeleted: true,
+              createdAt: { $lte: SEVEN_DAYS_AGO }
+            });
+            console.log("Result is", result);
+            logger.info(`Cron job completed. Deleted ${result.deletedCount} old notes.`);
+          } catch (error) {
+            logger.error('Error deleting old notes:', error);
+          }
+        }, {
+          timezone: 'Asia/Kolkata'
+        });
+        isCronStarted = true; // ensure cron runs only once
+      }
+      return res.status(200).json({
         apiResponseData: {
-          apiResponseMessage: 'All Notes Deleted Successfully.',
+          apiResponseMessage: 'Notes in Trash will be deleted after 7 days',
         },
         apiResponseStatus: true,
       });
-    }
-    catch (error) {
-      logger.error('Error deleting notes:', error);
+    } catch (error) {
+      logger.error('Error starting cron:', error);
       res.status(500).json({
         apiResponseData: {
-          apiResponseMessage: 'Something Went Wrong.Please try again !',
+          apiResponseMessage: 'Something went wrong. Please try again!',
         },
       });
     }
