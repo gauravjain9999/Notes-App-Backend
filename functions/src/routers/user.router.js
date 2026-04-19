@@ -5,8 +5,10 @@ const {
   registerValidation,
   loginValidation,
   requestOtpValidation,
-  verifyOtpValidation
+  verifyOtpValidation,
+  feedbackValidation
 } = require("../validators/controller-validation");
+const verifyToken = require('../middleware/auth');
 const expressValidation = require("../middleware/validators");
 
 //Sign-Up
@@ -17,4 +19,5 @@ router.post('/user/login', loginValidation, expressValidation, userController.lo
 router.post('/user/request-otp', requestOtpValidation, expressValidation, userController.requestOTP);
 router.post('/user/verify-otp', verifyOtpValidation, expressValidation, userController.verifyOTP);
 router.post('/send-email', loginValidation, expressValidation, userController.sendEmail);
+router.post('/feedback', verifyToken, feedbackValidation, expressValidation, feedbackController.submitFeedback);
 module.exports = router;
