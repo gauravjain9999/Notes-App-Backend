@@ -18,6 +18,18 @@ const transporter = nodemailer.createTransport({
   },
 });
 
+function getNameFromEmail(email) {
+  let namePart = email.split("@")[0];
+  namePart = namePart.replaceAll(/[0-9]/g, "");
+  namePart = namePart.replaceAll(/[._]/g, " ");
+  namePart = namePart.replaceAll(/([a-z])([A-Z])/g, "$1 $2");
+
+  return namePart
+    .split(" ")
+    .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+    .join(" ");
+}
+
 const emailHtml = `
 <div style="font-family:Roboto,Arial,sans-serif;background:#f4f4f4;padding:40px;">
   <div style="max-width:600px;margin:auto;background:#fff;padding:24px;border-radius:12px;box-shadow:0 4px 12px rgba(0,0,0,0.1);text-align:center;">
@@ -57,11 +69,13 @@ module.exports = {
         if (err) {
           return res.status(500).json({ error: err.message });
         }
+        const name = req.body.name || getNameFromEmail(req.body.email); // 🔥 FIX
         // Create user with ObjectId
         const user = new User({
           _id: new mongoose.Types.ObjectId(),
           username: req.body.username,
           password: hash,
+          name: name,
           phone: req.body.phone,
           email: req.body.email,
           userType: req.body.userType
@@ -120,6 +134,7 @@ module.exports = {
             apiResponseStatus: false
           });
         }
+
         // Compare the password using bcrypt
         bcrypt.compare(req.body.password, user[0].password, (err, result) => {
           if (!result) {
@@ -137,7 +152,8 @@ module.exports = {
               userId: user[0]._id.toString(),
               userType: user[0].userType,
               email: user[0].email,
-              phone: user[0].phone
+              phone: user[0].phone,
+              name: user[0].name || getNameFromEmail(user[0].email)
             },
               process.env.JWT_SECRET,
               { expiresIn: "24h" } // Set token expiration
@@ -191,6 +207,7 @@ module.exports = {
   verifyOTP: async (req, res) => {
     try {
       const { email, otp } = req.body;
+
       if (!email || !otp) {
         return res.status(400).json({
           apiResponseData: {
@@ -201,30 +218,57 @@ module.exports = {
       }
 
       const result = await verifyOtp(email, otp);
-      if (!result.success) return res.status(400).json({
-        apiResponseData: {
-          apiResponseMessage: result,
-        },
-        apiResponseStatus: false
-      }
-      );
-      // Generate token (JWT or session based)
-      // For example, JWT:
-      const jwt = require("jsonwebtoken");
-      const token = jwt.sign({ email }, process.env.JWT_SECRET, { expiresIn: "1h" });
 
-      res.json({
+      if (!result.success) {
+        return res.status(400).json({
+          apiResponseData: {
+            apiResponseMessage: result.message
+          },
+          apiResponseStatus: false
+        });
+      }
+
+      let user = await User.findOne({ email });
+      if (!user) {
+        const name = getNameFromEmail(email);
+        user = await User.create({
+          email,
+          name
+        });
+
+      } else if (!user.name) {
+        // Fix old users without name
+        const name = getNameFromEmail(email);
+        user.name = name;
+        await user.save();
+      }
+
+      logger.info(`User logged in via OTP: ${email}, userId: ${user._id}`);
+
+      // Generate JWT (use userId)
+      const jwt = require("jsonwebtoken");
+
+      const token = jwt.sign(
+        { userId: user._id },
+        process.env.JWT_SECRET,
+        { expiresIn: "1h" }
+      );
+
+      return res.json({
         apiResponseData: {
           apiResponseMessage: "Login Successful",
           authorizationToken: `Bearer ${token}`,
-          email: email,
-          userName: email.split('@')[0] // Example username from email
+          email: user.email,
+          name: user.name,
+          userName: user.name
         },
         apiResponseStatus: true
       });
+
     } catch (error) {
       logger.error(`Error occurred during OTP verification: ${error}`);
-      res.status(500).json({
+
+      return res.status(500).json({
         apiResponseData: {
           apiResponseMessage: "Failed to verify OTP"
         },
