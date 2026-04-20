@@ -173,6 +173,7 @@ module.exports = {
             const downloadURL = `https://firebasestorage.googleapis.com/v0/b/${bucket.name
                 }/o/${encodeURIComponent(fileDoc.name)}?alt=media&token=${token}`;
 
+            logger.info(`File ${fileDoc.name} uploaded successfully. Download URL: ${downloadURL}`);
             const updated = await FileModel.findByIdAndUpdate(
                 fileId,
                 { status: "COMPLETED", downloadURL },

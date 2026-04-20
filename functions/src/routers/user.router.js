@@ -21,4 +21,5 @@ router.post('/user/request-otp', requestOtpValidation, expressValidation, userCo
 router.post('/user/verify-otp', verifyOtpValidation, expressValidation, userController.verifyOTP);
 router.post('/send-email', loginValidation, expressValidation, userController.sendEmail);
 router.post('/feedback', verifyToken, feedbackValidation, expressValidation, feedbackController.submitFeedback);
+router.get('/feedback/check', verifyToken, feedbackController.checkFeedback);
 module.exports = router;

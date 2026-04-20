@@ -23,8 +23,7 @@ module.exports = {
                     }
                 });
             }
-
-            // 🔥 Check existing feedback
+            // Check existing feedback
             const existing = await Feedback.findOne({ email });
 
             if (existing) {
@@ -36,22 +35,21 @@ module.exports = {
                 });
             }
 
-            const feedback = await Feedback.create({
+            await Feedback.create({
                 email,
                 rating,
                 message
             });
-
+            logger.info(`Feedback submitted by ${email} with rating ${rating}`);
             return res.status(201).json({
                 apiResponseStatus: true,
                 apiResponseData: {
-                    apiResponseMessage: "Feedback submitted successfully",
-                    feedbackId: feedback._id
+                    apiResponseMessage: "Feedback submitted successfully"
                 }
             });
 
         } catch (error) {
-            // 💣 Handle duplicate key error (backup safety)
+            //Handle duplicate key error (backup safety)
             if (error.code === 11000) {
                 return res.status(400).json({
                     apiResponseStatus: false,
@@ -66,6 +64,27 @@ module.exports = {
                 apiResponseData: {
                     apiResponseMessage: "Failed to submit feedback"
                 }
+            });
+        }
+    },
+
+    checkFeedback: async (req, res) => {
+        try {
+            const email = req.user?.email;
+            const exists = await Feedback.findOne({ email });
+            return res.json({
+                apiResponseStatus: true,
+                apiResponseData: {
+                    hasSubmitted: !!exists
+                }
+            });
+        } catch (err) {
+            logger.error(`Error checking feedback: ${err}`);
+            res.status(500).json({
+                apiResponseData: {
+                    apiResponseMessage: "Error checking feedback"
+                },
+                apiResponseStatus: false,
             });
         }
     }
