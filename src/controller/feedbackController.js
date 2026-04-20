@@ -68,5 +68,25 @@ module.exports = {
                 }
             });
         }
+    },
+    checkFeedback: async (req, res) => {
+        try {
+            const email = req.user?.email;
+            const exists = await Feedback.findOne({ email });
+            return res.json({
+                apiResponseStatus: true,
+                apiResponseData: {
+                    hasSubmitted: !!exists
+                },
+            });
+        } catch (err) {
+            logger.error(`Error checking feedback: ${err}`);
+            res.status(500).json({
+                apiResponseData: {
+                    apiResponseMessage: "Error checking feedback"
+                },
+                apiResponseStatus: false,
+            });
+        }
     }
 };
