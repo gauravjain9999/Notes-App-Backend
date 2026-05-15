@@ -12,13 +12,14 @@ router.delete('/delete-notes/:id', verifyToken, notesController.deleteNotes);
 router.delete('/delete-trashed-notes/:id', verifyToken, notesController.deleteInTrashedNotes);
 router.delete('/delete-all', verifyToken, notesController.deleteAllNotes)
 router.put('/update-notes/:id', verifyToken, notesController.editNotes);
-router.post('/notes/api/chat', openAIBotController.openAIBot);
+router.post('/api-notes-chatbot', verifyToken, openAIBotController.openAIBot);
+router.get('/chat-history-notes', verifyToken, openAIBotController.getChatHistory);
 router.patch('/notes-set-reminder/:id/reminder', verifyToken, remindersController.setReminder);
 router.patch('/notes-restore/:id', verifyToken, notesController.restoreNote);
 router.get('/shortcut-list', verifyToken, notesController.shortcutNotes);
 router.patch('/remove-shortcut/:id', verifyToken, notesController.removedShortcutNotes);
 router.post('/send-notification', verifyToken, notificationsController.sendNotification);
-router.post('/notifications-token', notificationsController.registerToken);
+router.post('/notifications-token', verifyToken, notificationsController.registerToken);
 router.post('/quick-notes', verifyToken, notesController.createQuickNote);
 router.post('/ideas', verifyToken, notesController.createIdeaNote);
 router.post('/todos', verifyToken, notesController.createTodoNote);

@@ -8,6 +8,12 @@ const fcmTokenSchema = new mongoose.Schema(
             unique: true
         },
 
+        name: {
+            type: String,
+            required: true
+        },
+
+
         userId: {
             type: mongoose.Schema.Types.ObjectId,
             ref: 'User',
