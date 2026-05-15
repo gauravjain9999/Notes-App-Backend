@@ -1,5 +1,5 @@
 const { GoogleGenerativeAI } = require("@google/generative-ai");
-const Chat = require("../models/chat.model.ts");
+const Chat = require("../models/chat.model");
 const logger = require("../utils/logger");
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
 
