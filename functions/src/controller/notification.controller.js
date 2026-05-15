@@ -1,42 +1,61 @@
 const admin = require("../config/firebaseAdmin");
 const FcmToken = require("../models/fcmToken.model");
+const logger = require("../utils/logger");
 
 module.exports = {
     sendNotification: async (req, res) => {
         try {
-            const { token, data } = req.body;
+            const { token, title, body, eventId, name } = req.body;
+
+            if (!token) {
+                return res.status(400).json({
+                    apiResponseStatus: false,
+                    apiResponseData: {
+                        apiResponseMessage: "FCM token is required",
+                    },
+                });
+            }
 
             const message = {
                 token,
+
+                notification: {
+                    title: title || "Notification",
+                    body: body || "",
+                },
+
                 data: {
-                    title: data.title,
-                    body: data.body,
-                    eventId: data.eventId,
+                    title: title || "",
+                    body: body || "",
+                    eventId: eventId || "",
+                    name: name || "",
                 },
             };
 
-            await admin.messaging().send(message);
+            const response = await admin.messaging().send(message);
 
             return res.status(200).json({
+                apiResponseStatus: true,
                 apiResponseData: {
                     apiResponseMessage: "Notification sent successfully.",
                 },
-                apiResponseStatus: true,
             });
         } catch (error) {
             console.error("Notification sending error:", error);
+
             return res.status(500).json({
+                apiResponseStatus: false,
                 apiResponseData: {
                     apiResponseMessage: "Failed to send notification",
                 },
-                apiResponseStatus: false,
             });
         }
     },
+
     registerToken: async (req, res) => {
         try {
-            const { token, device } = req.body;
-
+            const { token, name, device } = req.body;
+            logger.info("Registering FCM token:", { token, name, device });
             if (!token) {
                 return res.status(400).json({
                     apiResponseStatus: false,
@@ -46,8 +65,12 @@ module.exports = {
 
             const result = await FcmToken.updateOne(
                 { token },
-                { token, device },
-                { upsert: true }
+                {
+                    token,
+                    device: device || "web",
+                    name,
+                },
+                { upsert: true },
             );
 
             if (!result) {
