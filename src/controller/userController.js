@@ -1,15 +1,15 @@
-const express = require('express');
-const User = require('../models/user.model');
-const mongoose = require('mongoose');
-const bcrypt = require('bcrypt');
-const jwt = require('jsonwebtoken');
-const logger = require('../utils/logger');
+const express = require("express");
+const User = require("../models/user.model");
+const mongoose = require("mongoose");
+const bcrypt = require("bcrypt");
+const jwt = require("jsonwebtoken");
+const logger = require("../utils/logger");
 const { sendOtp, verifyOtp } = require("../utils/otp-service");
-const Email = require('../models/email.model');
-const nodemailer = require('nodemailer');
+const Email = require("../models/email.model");
+const nodemailer = require("nodemailer");
 
 const transporter = nodemailer.createTransport({
-  service: 'gmail',
+  service: "gmail",
   secure: true,
   port: 465,
   auth: {
@@ -26,7 +26,7 @@ function getNameFromEmail(email) {
 
   return namePart
     .split(" ")
-    .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+    .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
     .join(" ");
 }
 
@@ -42,7 +42,6 @@ const emailHtml = `
   </div>
 </div>
 `;
-
 //SignUp Registration
 module.exports = {
   /**
@@ -60,8 +59,8 @@ module.exports = {
         return res.status(409).json({
           apiResponseStatus: false,
           apiResponseData: {
-            apiResponseMessage: "User already exists with this email"
-          }
+            apiResponseMessage: "User already exists with this email",
+          },
         });
       }
       // Hash password
@@ -79,41 +78,39 @@ module.exports = {
           name: name, // ✅ added
           phone: req.body.phone,
           email: req.body.email,
-
-          userType: req.body.userType
+          loginProvider: "email",
+          userType: req.body.userType,
         });
 
         const result = await user.save();
 
         logger.info("User registered successfully", {
           userId: result._id.toString(),
-          email: result.email
+          email: result.email,
         });
 
         return res.status(201).json({
           apiResponseStatus: true,
           apiResponseData: {
             apiResponseMessage: "Successfully SignUp. Please Login Now!",
-            userId: result._id.toString() // ✅ Helpful for frontend
-          }
+            userId: result._id.toString(), // ✅ Helpful for frontend
+          },
         });
       });
-
     } catch (error) {
       logger.error("Signup error", {
         message: error.message,
-        stack: error.stack
+        stack: error.stack,
       });
 
       return res.status(500).json({
         apiResponseStatus: false,
         apiResponseData: {
-          apiResponseMessage: "Something went wrong during signup"
-        }
+          apiResponseMessage: "Something went wrong during signup",
+        },
       });
     }
   },
-
   /**
    * @function loginUser
    * @description This function is used to log in the user.
@@ -125,15 +122,15 @@ module.exports = {
     // Find the user by email
     User.find({ email: req.body.email })
       .exec()
-      .then(user => {
+      .then((user) => {
         // If user not found, return error
         if (user.length < 1) {
           logger.info(`Login attempt fail for email: ${req.body.email}`);
           return res.status(401).json({
             apiResponseData: {
-              apiResponseMessage: "User Not Exist"
+              apiResponseMessage: "User Not Exist",
             },
-            apiResponseStatus: false
+            apiResponseStatus: false,
           });
         }
         // Compare the password using bcrypt
@@ -141,67 +138,95 @@ module.exports = {
           if (!result) {
             return res.status(401).json({
               apiResponseData: {
-                apiResponseMessage: 'Password Not Correct'
+                apiResponseMessage: "Password Not Correct",
               },
-              apiResponseStatus: false
+              apiResponseStatus: false,
             });
           }
           if (result) {
             // Create JWT token
-            const authorizationToken = jwt.sign({
-              username: user[0].username,
-              userId: user[0]._id.toString(),
-              userType: user[0].userType,
-              email: user[0].email,
-              phone: user[0].phone,
-              name: user[0].name || getNameFromEmail(user[0].email)
-            },
+            const authorizationToken = jwt.sign(
+              {
+                username: user[0].username,
+                userId: user[0]._id.toString(),
+                userType: user[0].userType,
+                email: user[0].email,
+                phone: user[0].phone,
+                name: user[0].name || getNameFromEmail(user[0].email),
+              },
               process.env.JWT_SECRET,
-              { expiresIn: "24h" } // Set token expiration
+              { expiresIn: "24h" }, // Set token expiration
             );
             // Return response with user data and token
             res.status(200).json({
               apiResponseData: {
                 email: user[0].email,
+                userId: user[0]._id.toString(),
                 name: user[0].name,
                 phone: user[0].phone,
                 userName: user[0].username,
+                isPremium: user[0].isPremium,
                 authorizationToken: `Bearer ${authorizationToken}`,
               },
-              apiResponseStatus: true
+              apiResponseStatus: true,
             });
-            logger.info(`Login attempt success for email: ${req.body.email}`)
+            logger.info(`Login attempt success for email: ${req.body.email}`);
           }
         });
       })
-      .catch(err => {
+      .catch((err) => {
         logger.error(`Error occurred during login: ${err}`);
         res.status(500).json({
-          message: err
+          message: err,
         });
-      }
-      );
+      });
   },
 
+  googleLogin: async (req, res) => {
+    const { name, email, googleId } = req.body;
+    logger.info("googleID", googleId);
+    let user = await User.findOne({ email });
+    logger.info("Existing user for Google login", user);
+    if (!user) {
+      user = await User.create({
+        name,
+        email,
+        googleId,
+        loginProvider: "google",
+      });
+    } else {
+      user.googleId = googleId;
+      await user.save();
+    }
+    res.status(200).json({
+      apiResponseData: {
+        user,
+      },
+      apiResponseStatus: true,
+    });
+  },
   requestOTP: async (req, res) => {
     try {
       const { email } = req.body;
-      if (!email) return res.status(400).json({ success: false, message: "Email is required" });
+      if (!email)
+        return res
+          .status(400)
+          .json({ success: false, message: "Email is required" });
 
       await sendOtp(email);
       res.json({
         apiResponseData: {
-          apiResponseMessage: "OTP sent successfully"
+          apiResponseMessage: "OTP sent successfully",
         },
-        apiResponseStatus: true
+        apiResponseStatus: true,
       });
     } catch (error) {
       logger.error(`Send OTP Error: ${error}`);
       res.status(500).json({
         apiResponseData: {
-          apiResponseMessage: "Failed to send OTP"
+          apiResponseMessage: "Failed to send OTP",
         },
-        apiResponseStatus: false
+        apiResponseStatus: false,
       });
     }
   },
@@ -215,7 +240,7 @@ module.exports = {
           apiResponseData: {
             apiResponseMessage: "Email and OTP are required",
           },
-          apiResponseStatus: false
+          apiResponseStatus: false,
         });
       }
 
@@ -224,9 +249,9 @@ module.exports = {
       if (!result.success) {
         return res.status(400).json({
           apiResponseData: {
-            apiResponseMessage: result.message
+            apiResponseMessage: result.message,
           },
-          apiResponseStatus: false
+          apiResponseStatus: false,
         });
       }
 
@@ -235,9 +260,8 @@ module.exports = {
         const name = getNameFromEmail(email);
         user = await User.create({
           email,
-          name
+          name,
         });
-
       } else if (!user.name) {
         // Fix old users without name
         const name = getNameFromEmail(email);
@@ -246,15 +270,12 @@ module.exports = {
       }
 
       logger.info(`User logged in via OTP: ${email}, userId: ${user._id}`);
-
       // Generate JWT (use userId)
       const jwt = require("jsonwebtoken");
 
-      const token = jwt.sign(
-        { userId: user._id },
-        process.env.JWT_SECRET,
-        { expiresIn: "1h" }
-      );
+      const token = jwt.sign({ userId: user._id }, process.env.JWT_SECRET, {
+        expiresIn: "1h",
+      });
 
       return res.json({
         apiResponseData: {
@@ -262,98 +283,42 @@ module.exports = {
           authorizationToken: `Bearer ${token}`,
           email: user.email,
           name: user.name,
-          userName: user.name
+          userName: user.name,
         },
-        apiResponseStatus: true
+        apiResponseStatus: true,
       });
-
     } catch (error) {
       logger.error(`Error occurred during OTP verification: ${error}`);
 
       return res.status(500).json({
         apiResponseData: {
-          apiResponseMessage: "Failed to verify OTP"
+          apiResponseMessage: "Failed to verify OTP",
         },
-        apiResponseStatus: false
+        apiResponseStatus: false,
       });
     }
   },
 
-  // verifyOTP: async (req, res) => {
-  //   try {
-  //     const { email, otp } = req.body;
-  //     if (!email || !otp) {
-  //       return res.status(400).json({
-  //         apiResponseData: {
-  //           apiResponseMessage: "Email and OTP are required",
-  //         },
-  //         apiResponseStatus: false
-  //       });
-  //     }
-
-  //     const result = await verifyOtp(email, otp);
-  //     if (!result.success) return res.status(400).json({
-  //       apiResponseData: {
-  //         apiResponseMessage: result,
-  //       },
-  //       apiResponseStatus: false
-  //     }
-  //     );
-  //     let user = await User.findOne({ email });
-  //     logger.info(`OTP verified for email: ${email}. User exists: ${!!user}`);
-  //     if (!user) {
-  //       const name = getNameFromEmail(email);
-  //       logger.info(`Creating new user for email: ${email} with name: ${name}`);
-  //       user = await User.create({
-  //         email,
-  //         name
-  //       });
-  //     }
-  //     logger.info(`User logged in via OTP: ${email}, userId: ${user._id.toString()}`);
-  //     // Generate token (JWT or session based)
-  //     // For example, JWT:
-  //     const jwt = require("jsonwebtoken");
-  //     const token = jwt.sign({ email }, process.env.JWT_SECRET, { expiresIn: "1h" });
-  //     res.json({
-  //       apiResponseData: {
-  //         apiResponseMessage: "Login Successful",
-  //         authorizationToken: `Bearer ${token}`,
-  //         email: email,
-  //         name: user.name,
-  //         userName: email.split('@')[0] // Example username from email
-  //       },
-  //       apiResponseStatus: true
-  //     });
-  //   } catch (error) {
-  //     logger.error(`Error occurred during OTP verification: ${error}`);
-  //     res.status(500).json({
-  //       apiResponseData: {
-  //         apiResponseMessage: "Failed to verify OTP"
-  //       },
-  //       apiResponseStatus: false
-  //     });
-  //   }
-  // },
-
   sendEmail: async (req, res) => {
     const { email } = req.body;
     console.log(req.body);
-    if (!email) return res.status(400).json({
-      apiResponseData: {
-        apiResponseMessage: 'Email is required'
-      },
-      apiResponseStatus: false
-    }
-    );
+    if (!email)
+      return res.status(400).json({
+        apiResponseData: {
+          apiResponseMessage: "Email is required",
+        },
+        apiResponseStatus: false,
+      });
     try {
       // Check if the email already exists
       const existing = await Email.findOne({ email });
-      if (existing) return res.status(400).json({
-        apiResponseData: {
-          apiResponseMessage: 'Email already subscribed'
-        },
-        apiResponseStatus: false
-      });
+      if (existing)
+        return res.status(400).json({
+          apiResponseData: {
+            apiResponseMessage: "Email already subscribed",
+          },
+          apiResponseStatus: false,
+        });
       // Create a new email subscriber
       const subscriber = new Email({ email });
       await subscriber.save();
@@ -362,7 +327,7 @@ module.exports = {
       await transporter.sendMail({
         from: process.env.EMAIL_USER,
         to: process.env.ADMIN_EMAIL,
-        subject: 'New SmartNotes Subscription',
+        subject: "New SmartNotes Subscription",
         text: `New subscriber: ${email}`,
       });
 
@@ -370,24 +335,24 @@ module.exports = {
       await transporter.sendMail({
         from: process.env.EMAIL_USER,
         to: email,
-        subject: 'Welcome to SmartNotes!',
+        subject: "Welcome to SmartNotes!",
         text: `You've successfully subscribed to updates.`,
-        html: emailHtml
+        html: emailHtml,
       });
       res.status(200).json({
         apiResponseData: {
-          apiResponseMessage: 'Subscription successful'
+          apiResponseMessage: "Subscription successful",
         },
-        apiResponseStatus: true
+        apiResponseStatus: true,
       });
     } catch (err) {
       logger.error(`Error occurred during email subscription: ${err}`);
       res.status(500).json({
         apiResponseData: {
-          apiResponseMessage: 'Something went wrong'
+          apiResponseMessage: "Something went wrong",
         },
-        apiResponseStatus: false
+        apiResponseStatus: false,
       });
     }
-  }
+  },
 };
