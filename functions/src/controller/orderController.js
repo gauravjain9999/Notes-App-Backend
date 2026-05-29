@@ -2,6 +2,7 @@ const crypto = require("crypto");
 const logger = require("../utils/logger");
 const User = require("../models/user.model");
 const razorpay = require("../services/payment.service");
+require("dotenv").config();
 
 module.exports = {
   orderPlaced: async (req, res) => {
