@@ -52,6 +52,8 @@ router.post(
   expressValidation,
   feedbackController.submitFeedback,
 );
+
+router.put("/update-profile", verifyToken, userController.updateProfile);
 router.get("/feedback/check", verifyToken, feedbackController.checkFeedback);
 router.post("/google-login", verifyToken, userController.googleLogin);
 module.exports = router;

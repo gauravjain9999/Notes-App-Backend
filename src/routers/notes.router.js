@@ -7,6 +7,7 @@ const notificationsController = require("../controller/notification.controller")
 const verifyToken = require("../middleware/auth");
 const ordercontroller = require("../controller/orderController");
 
+// Notes APIs
 router.get("/notes", verifyToken, notesController.getNotes);
 router.post("/add-notes", verifyToken, notesController.addNotes);
 router.delete("/delete-notes/:id", verifyToken, notesController.deleteNotes);
@@ -23,18 +24,20 @@ router.get(
   verifyToken,
   openAIBotController.getChatHistory,
 );
+router.patch("/notes-restore/:id", verifyToken, notesController.restoreNote);
 router.patch(
   "/notes-set-reminder/:id/reminder",
   verifyToken,
   remindersController.setReminder,
 );
-router.patch("/notes-restore/:id", verifyToken, notesController.restoreNote);
 router.get("/shortcut-list", verifyToken, notesController.shortcutNotes);
 router.patch(
   "/remove-shortcut/:id",
   verifyToken,
   notesController.removedShortcutNotes,
 );
+
+//Notification APIs
 router.post(
   "/send-notification",
   verifyToken,
@@ -45,10 +48,14 @@ router.post(
   verifyToken,
   notificationsController.registerToken,
 );
+
+//Scratchpad APIs
 router.post("/quick-notes", verifyToken, notesController.createQuickNote);
 router.post("/ideas", verifyToken, notesController.createIdeaNote);
 router.post("/todos", verifyToken, notesController.createTodoNote);
 router.post("/reminders", verifyToken, notesController.createReminderNote);
+
+//Payment APIs
 router.post("/create-orders", verifyToken, ordercontroller.orderPlaced);
 router.post("/verify-payment", verifyToken, ordercontroller.verifyPlaced);
 

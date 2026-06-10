@@ -182,6 +182,43 @@ module.exports = {
       });
   },
 
+  updateProfile: async (req, res) => {
+    try {
+      const userId = req.user.id || req.user._id;
+      logger.info(`Updating profile for userId: ${userId}`, req);
+      const { name, bio, email } = req.body;
+      await User.findByIdAndUpdate(
+        userId,
+        {
+          name,
+          bio,
+          email,
+        },
+        {
+          new: true,
+        },
+      );
+      return res.status(200).json({
+        apiResponseStatus: true,
+        apiResponseData: {
+          data: {
+            name: req.body.name,
+            email: req.body.email,
+            bio: req.body.bio,
+          },
+          apiResponseMessage: "Profile updated successfully",
+        },
+      });
+    } catch (error) {
+      return res.status(500).json({
+        apiResponseStatus: false,
+        apiResponseData: {
+          apiResponseMessage: error.message,
+        },
+      });
+    }
+  },
+
   googleLogin: async (req, res) => {
     const { name, email, googleId } = req.body;
     logger.info("googleID", googleId);
