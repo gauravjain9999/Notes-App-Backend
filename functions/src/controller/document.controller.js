@@ -1,4 +1,4 @@
-const Document = require("../models/documents.model");
+const Document = require("../models/document.model");
 const admin = require("../config/firebaseAdmin");
 const bucket = admin.storage().bucket();
 const logger = require("../utils/logger");
