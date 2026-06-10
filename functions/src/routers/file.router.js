@@ -5,7 +5,7 @@ const verifyToken = require("../middleware/auth"); // ✅ auth middleware
 const upload = require("../middleware/upload-image");
 const fileUpload = require("../middleware/file-upload");
 const webClipController = require("../controller/webClip.controller");
-const documentsController = require("../controller/documents.controller");
+const documentsController = require("../controller/document.controller");
 router.use(verifyToken); // ✅ protect all file routes
 
 router.get("/files", verifyToken, fileController.file);
