@@ -16,6 +16,10 @@ const userSchema = new mongoose.Schema(
       type: String,
       enum: ["google", "email"],
     },
+    bio: {
+      type: String,
+      default: "",
+    },
     isPremium: {
       type: Boolean,
       default: false,
