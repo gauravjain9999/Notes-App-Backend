@@ -5,7 +5,7 @@ const verifyToken = require("../middleware/auth"); // ✅ auth middleware
 const upload = require("../middleware/upload-image");
 const fileUpload = require("../middleware/file-upload");
 const webClipController = require("../controller/webClip.controller");
-const documentsController = require("../controller/documents.controller");
+const documentsController = require("../controller/document.controller");
 router.use(verifyToken); // ✅ protect all file routes
 
 router.get("/files", verifyToken, fileController.file);
@@ -13,12 +13,7 @@ router.delete("/delete-file/:id", verifyToken, fileController.deleteFile);
 router.post("/upload", verifyToken, fileController.uploadFile);
 // Confirm upload & save final metadata
 router.post("/confirm-upload", verifyToken, fileController.confirmUpload);
-router.post(
-  "/upload-image",
-  verifyToken,
-  upload.single("image"),
-  fileController.uploadImage,
-);
+router.post("/upload-image", verifyToken, fileController.uploadImage);
 router.get("/images", verifyToken, fileController.getImages);
 router.delete("/delete-image/:id", verifyToken, fileController.deleteImage);
 

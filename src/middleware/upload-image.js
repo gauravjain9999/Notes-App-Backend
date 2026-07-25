@@ -1,5 +1,4 @@
 const multer = require("multer");
-
 const storage = multer.memoryStorage();
 
 const upload = multer({
@@ -18,6 +17,7 @@ const upload = multer({
     if (!allowedTypes.test(cleanName)) {
       return cb(new Error("Only PNG, JPG and JPEG files are allowed!"), false);
     }
+
     cb(null, true);
   },
 });
