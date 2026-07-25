@@ -1,34 +1,29 @@
 const mongoose = require("mongoose");
-const webClipSchema = new mongoose.Schema({
+const documentSchema = new mongoose.Schema({
   userId: {
     type: mongoose.Schema.Types.ObjectId,
     ref: "User",
     required: true,
   },
 
-  title: {
+  fileName: {
     type: String,
     required: true,
   },
 
-  url: {
+  fileUrl: {
     type: String,
     required: true,
   },
 
-  description: {
+  fileType: {
     type: String,
     default: "",
   },
 
-  image: {
-    type: String,
-    default: "",
-  },
-
-  favicon: {
-    type: String,
-    default: "",
+  fileSize: {
+    type: Number,
+    default: 0,
   },
 
   createdAt: {
@@ -37,4 +32,4 @@ const webClipSchema = new mongoose.Schema({
   },
 });
 
-module.exports = mongoose.model("WebClip", webClipSchema);
+module.exports = mongoose.model("Document", documentSchema);

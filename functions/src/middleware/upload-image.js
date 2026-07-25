@@ -1,21 +1,24 @@
 const multer = require("multer");
-const fileFilter = (req, file, cb) => {
-  const allowedMimeTypes = ["image/jpeg", "image/jpg", "image/png"];
 
-  if (allowedMimeTypes.includes(file.mimetype)) {
-    cb(null, true);
-  } else {
-    cb(new Error("Only JPG, JPEG and PNG files are allowed"), false);
-  }
-};
+const storage = multer.memoryStorage();
 
 const upload = multer({
-  storage: multer.memoryStorage(),
-
-  fileFilter,
+  storage,
 
   limits: {
-    fileSize: 10 * 1024 * 1024, // 10MB
+    fileSize: 10 * 1024 * 1024, // 10 MB
+  },
+
+  fileFilter(req, file, cb) {
+    const cleanName = file.originalname.replace(/[^\w\d.-]/g, "_");
+    file.cleanedName = cleanName;
+    console.log("Cleaned Image Name:", cleanName);
+    const allowedTypes = /\.(png|jpg|jpeg)$/i;
+
+    if (!allowedTypes.test(cleanName)) {
+      return cb(new Error("Only PNG, JPG and JPEG files are allowed!"), false);
+    }
+    cb(null, true);
   },
 });
 

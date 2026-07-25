@@ -218,6 +218,7 @@ module.exports = {
         });
       }
 
+      console.log("req.file", req.file);
       if (!req.file) {
         return res.status(400).json({
           apiResponseStatus: false,
