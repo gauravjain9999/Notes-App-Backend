@@ -137,6 +137,7 @@ module.exports = {
   confirmUpload: async (req, res) => {
     try {
       const userId = req.user.id;
+      console.log("User ID in confirmUpload:", userId);
       const { fileId } = req.body;
 
       if (!fileId)

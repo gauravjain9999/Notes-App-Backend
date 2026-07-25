@@ -56,7 +56,7 @@ module.exports = {
 
       // Gemini Model
       const model = genAI.getGenerativeModel({
-        model: "gemini-2.0-flash",
+        model: "gemini-2.5-flash",
 
         systemInstruction: `
         You are a helpful AI assistant for a notes application.
@@ -124,31 +124,30 @@ module.exports = {
 
   getChatHistory: async (req, res) => {
     try {
-    const userId = req.user?.id;
-    const chat = await Chat.findOne({ userId });
-    if (!chat) {
+      const userId = req.user?.id;
+      const chat = await Chat.findOne({ userId });
+      if (!chat) {
+        return res.status(200).json({
+          apiResponseStatus: true,
+          apiResponseData: {
+            chats: [],
+          },
+        });
+      }
       return res.status(200).json({
         apiResponseStatus: true,
         apiResponseData: {
-          chats: []
-        }
+          chats: chat.messages,
+        },
+      });
+    } catch (error) {
+      logger.error("Get ChatHistory error", error);
+      return res.status(500).json({
+        apiResponseStatus: false,
+        apiResponseData: {
+          apiResponseMessage: "Failed to load chats",
+        },
       });
     }
-    return res.status(200).json({
-      apiResponseStatus: true,
-      apiResponseData: {
-        chats: chat.messages
-      }
-    });
-
-  } catch (error) {
-    logger.error("Get ChatHistory error", error);
-    return res.status(500).json({
-      apiResponseStatus: false,
-      apiResponseData: {
-        apiResponseMessage: "Failed to load chats"
-      }
-    });
-  }
-  }
+  },
 };
