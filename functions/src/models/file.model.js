@@ -2,15 +2,26 @@ const mongoose = require("mongoose");
 
 const FileSchema = new mongoose.Schema({
   userId: {
+    // store unique user ID
+    type: String,
+    required: true,
+    index: true,
+  },
+  createdBy: {
     type: String,
     required: true,
     index: true,
   },
   name: { type: String, required: true },
-  downloadURL: { type: String, default: null },
+  status: {
+    type: String,
+    enum: ["PENDING", "COMPLETED"],
+    default: "PENDING",
+  },
+  downloadURL: { type: String, default: null }, // optional at first
   mimeType: { type: String },
   size: { type: Number },
-  presignedURL: { type: String },
+  presignedUrl: { type: String },
   uploadedAt: { type: Date, default: Date.now },
 });
 
