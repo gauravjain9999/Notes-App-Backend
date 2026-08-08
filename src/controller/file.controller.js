@@ -2,7 +2,6 @@ const logger = require("../utils/logger");
 const FileModel = require("../models/file.model");
 const admin = require("../config/firebaseAdmin");
 const bucket = admin.storage().bucket();
-const Image = require("../models/image.model");
 const { v4: uuidv4 } = require("uuid");
 
 // Wait for file to exist in Firebase Storage
@@ -136,7 +135,7 @@ module.exports = {
   // POST: Confirm upload, generate download URL
   confirmUpload: async (req, res) => {
     try {
-      const userId = req.user.id;
+      const userId = req.user.id || req.user?._id;
       console.log("User ID in confirmUpload:", userId);
       const { fileId } = req.body;
 
@@ -150,6 +149,7 @@ module.exports = {
         _id: fileId,
         createdBy: userId,
       });
+      console.log("File document found:", fileDoc);
       if (!fileDoc)
         return res.status(404).json({
           apiResponseStatus: false,
@@ -169,6 +169,7 @@ module.exports = {
       const fileRef = bucket.file(fileDoc.name);
       const uploaded = await waitForFile(fileRef);
 
+      console.log(`File ${fileDoc.name} exists in Firebase Storage:`, uploaded);
       if (!uploaded)
         return res.status(400).json({
           apiResponseStatus: false,
@@ -182,12 +183,14 @@ module.exports = {
 
       const downloadURL = `https://firebasestorage.googleapis.com/v0/b/${bucket.name}/o/${encodeURIComponent(fileDoc.name)}?alt=media&token=${token}`;
 
+      console.log("Generated download URL:", downloadURL);
       const updated = await FileModel.findByIdAndUpdate(
         fileId,
         { status: "COMPLETED", downloadURL },
         { new: true },
       );
 
+      console.log("Updated file document:", updated);
       res.json({
         apiResponseStatus: true,
         apiResponseData: {
@@ -207,168 +210,7 @@ module.exports = {
     }
   },
 
-  // uploadImage: async (req, res) => {
-  //   try {
-  //     const userId = req.user?.id || req.user?._id;
-  //     logger.info(`User Id in Upload Image: ${userId}`);
-
-  //     if (!userId) {
-  //       return res.status(401).json({
-  //         apiResponseStatus: false,
-  //         apiResponseData: {
-  //           apiResponseMessage: "Unauthorized user",
-  //         },
-  //       });
-  //     }
-
-  //     if (!req.file) {
-  //       return res.status(400).json({
-  //         apiResponseStatus: false,
-  //         apiResponseData: {
-  //           apiResponseMessage: "Image is required",
-  //         },
-  //       });
-  //     }
-
-  //     // Store inside images folder
-  //     const fileName = `${req.file.originalname}`;
-  //     const file = bucket.file(fileName);
-
-  //     const blobStream = file.createWriteStream({
-  //       resumable: false,
-  //       metadata: {
-  //         contentType: req.file.mimetype,
-  //       },
-  //     });
-
-  //     blobStream.on("error", (error) => {
-  //       logger.error("GCP Upload Error:", error);
-
-  //       return res.status(500).json({
-  //         apiResponseStatus: false,
-  //         apiResponseData: {
-  //           apiResponseMessage: "Failed to upload image",
-  //         },
-  //       });
-  //     });
-
-  //     blobStream.on("finish", async () => {
-  //       try {
-  //         logger.info("File uploaded successfully");
-  //         // Make file publicly accessible
-  //         await file.makePublic();
-  //         const publicUrl = `https://storage.googleapis.com/${bucket.name}/${fileName}`;
-  //         logger.info(`Public URL: ${publicUrl}`);
-  //         const savedImage = await Image.create({
-  //           userId,
-  //           imageUrl: publicUrl,
-  //           fileName: req.file.originalname,
-  //         });
-  //         logger.info(`Image metadata saved successfully: ${savedImage._id}`);
-  //         return res.status(201).json({
-  //           apiResponseStatus: true,
-  //           apiResponseMessage: "Image uploaded successfully",
-  //           apiResponseData: savedImage,
-  //         });
-  //       } catch (dbError) {
-  //         logger.error("Error saving image metadata:", dbError);
-
-  //         // Cleanup uploaded file if DB save fails
-  //         try {
-  //           await file.delete();
-  //         } catch (cleanupError) {
-  //           logger.error("Failed to cleanup uploaded file:", cleanupError);
-  //         }
-  //         return res.status(500).json({
-  //           apiResponseStatus: false,
-  //           apiResponseData: {
-  //             apiResponseMessage: "Failed to save image metadata",
-  //           },
-  //         });
-  //       }
-  //     });
-  //     blobStream.end(req.file.buffer);
-  //   } catch (error) {
-  //     logger.error("GCP IMAGE UPLOAD ERROR:", error);
-
-  //     return res.status(500).json({
-  //       apiResponseStatus: false,
-  //       apiResponseData: {
-  //         apiResponseMessage: "Failed to upload image",
-  //       },
-  //     });
-  //   }
-  // },
-
-  uploadImage: async (req, res) => {
-    try {
-      const userId = req.user?.id || req.user?._id;
-
-      if (!userId) {
-        return res.status(401).json({
-          apiResponseStatus: false,
-          apiResponseData: {
-            apiResponseMessage: "Unauthorized user",
-          },
-        });
-      }
-
-      if (!req.file) {
-        return res.status(400).json({
-          apiResponseStatus: false,
-          apiResponseData: {
-            apiResponseMessage: "Image is required",
-          },
-        });
-      }
-
-      const uniqueFileName = `images/${Date.now()}-${req.file.originalname}`;
-      const fileRef = bucket.file(uniqueFileName);
-
-      await fileRef.save(req.file.buffer, {
-        metadata: {
-          contentType: req.file.mimetype,
-        },
-      });
-
-      const token = uuidv4();
-      await fileRef.setMetadata({
-        metadata: {
-          firebaseStorageDownloadTokens: token,
-        },
-      });
-
-      const imageUrl = `https://firebasestorage.googleapis.com/v0/b/${bucket.name}/o/${encodeURIComponent(uniqueFileName)}?alt=media&token=${token}`;
-
-      const savedImage = await Image.create({
-        userId,
-        fileName: req.file.originalname,
-        imageUrl,
-        fileSize: req.file.size,
-      });
-
-      logger.info(`Image uploaded successfully: ${savedImage._id}`);
-
-      return res.status(201).json({
-        apiResponseStatus: true,
-        apiResponseData: savedImage,
-        apiResponseMessage: "Image uploaded successfully",
-      });
-    } catch (error) {
-      logger.error("UPLOAD IMAGE ERROR", {
-        message: error.message,
-        stack: error.stack,
-      });
-
-      return res.status(500).json({
-        apiResponseStatus: false,
-        apiResponseData: {
-          apiResponseMessage: "Failed to upload image",
-        },
-      });
-    }
-  },
-
+  //Images Recently Catured Section
   getImages: async (req, res) => {
     try {
       const userId = req.user?.id || req.user?._id;
@@ -381,8 +223,9 @@ module.exports = {
         });
       }
 
-      const images = await Image.find({
+      const images = await FileModel.find({
         userId,
+        mimeType: { $regex: /^image\//i },
       })
         .sort({
           createdAt: -1,
@@ -406,51 +249,53 @@ module.exports = {
     }
   },
 
-  deleteImage: async (req, res) => {
+  getDocuments: async (req, res) => {
     try {
       const userId = req.user?.id || req.user?._id;
-      const imageId = req.params.id;
-      const image = await Image.findOne({
-        _id: imageId,
-        userId,
-      });
 
-      if (!image) {
-        return res.status(404).json({
+      if (!userId) {
+        return res.status(401).json({
           apiResponseStatus: false,
-
           apiResponseData: {
-            apiResponseMessage: "Image not found",
+            apiResponseMessage: "Unauthorized user",
           },
         });
       }
 
-      // Extract Firebase file path
-      const imagePath = decodeURIComponent(
-        image.imageUrl.split("/o/")[1].split("?")[0],
-      );
+      const allowedMimeTypes = [
+        "application/pdf",
 
-      // Delete from Firebase Storage
-      await bucket.file(imagePath).delete();
+        // Word
+        "application/msword",
+        "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
 
-      // Delete from MongoDB
-      await Image.findByIdAndDelete(imageId);
+        // PowerPoint
+        "application/vnd.ms-powerpoint",
+        "application/vnd.openxmlformats-officedocument.presentationml.presentation",
+
+        // Excel
+        "application/vnd.ms-excel",
+        "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+      ];
+
+      const documents = await FileModel.find({
+        userId,
+        mimeType: { $in: allowedMimeTypes },
+      }).sort({
+        createdAt: -1,
+      });
 
       return res.status(200).json({
         apiResponseStatus: true,
-        apiResponseMessage: "Image deleted successfully",
-        apiResponseData: {
-          deletedImageId: imageId,
-        },
+        apiResponseData: documents,
       });
     } catch (error) {
-      logger.error("DELETE IMAGE ERROR", error);
+      logger.error("GET DOCUMENTS ERROR", error);
 
       return res.status(500).json({
         apiResponseStatus: false,
-
         apiResponseData: {
-          apiResponseMessage: "Failed to delete image",
+          apiResponseMessage: "Failed to fetch documents",
         },
       });
     }
