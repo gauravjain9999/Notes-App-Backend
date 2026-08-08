@@ -6,7 +6,7 @@ mongoose.connect(process.env.CONNECTION_STRING, {
   useNewUrlParser: true,
   useUnifiedTopology: true
 }).then(() =>{
-    console.log('Connect with the Database');
+    console.log('Connect with the Database !!');
 }).catch(err =>{
     console.log('Connection Fail', err);
 })
