@@ -2,11 +2,22 @@ const mongoose = require("mongoose");
 
 const ChildNoteSchema = new mongoose.Schema(
   {
-    title: { type: String, required: true },
-    createdAt: { type: String, required: true },
+    title: {
+      type: String,
+      required: true,
+      trim: true,
+    },
+
+    description: {
+      type: String,
+      default: "",
+    },
   },
-  { timestamps: true }
+  {
+    timestamps: true,
+  },
 );
+
 const NotebookSchema = new mongoose.Schema(
   {
     userId: {
@@ -15,12 +26,21 @@ const NotebookSchema = new mongoose.Schema(
       required: true,
       index: true,
     },
-    title: { type: String, required: true },
-    expanded: { type: Boolean, default: false },
-    createdAt: { type: String, required: true },
-    children: [ChildNoteSchema],
+
+    title: {
+      type: String,
+      required: true,
+      trim: true,
+    },
+
+    children: {
+      type: [ChildNoteSchema],
+      default: [],
+    },
   },
-  { timestamps: true }
+  {
+    timestamps: true,
+  },
 );
 
 module.exports = mongoose.model("Notebook", NotebookSchema);
