@@ -41,8 +41,8 @@ router.post(
 );
 router.post(
   "/send-email",
-  loginValidation,
-  expressValidation,
+  // loginValidation,
+  // expressValidation,
   userController.sendEmail,
 );
 router.post(
