@@ -6,7 +6,10 @@ const remindersController = require("../controller/remindersController");
 const notificationsController = require("../controller/notification.controller");
 const verifyToken = require("../middleware/auth");
 const ordercontroller = require("../controller/orderController");
+const newsController = require("../controller/news.controller");
 
+router.get("/news", newsController.getNews);
+router.post("/news/filter", newsController.getFilteredNews);
 router.get("/notes", verifyToken, notesController.getNotes);
 router.post("/add-notes", verifyToken, notesController.addNotes);
 router.delete("/delete-notes/:id", verifyToken, notesController.deleteNotes);

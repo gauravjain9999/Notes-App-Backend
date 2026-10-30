@@ -377,7 +377,8 @@ module.exports = {
       });
       res.status(200).json({
         apiResponseData: {
-          apiResponseMessage: "Subscription successful",
+          apiResponseMessage:
+            "Successfully subscribed to updates. Please check your email for confirmation.",
         },
         apiResponseStatus: true,
       });
